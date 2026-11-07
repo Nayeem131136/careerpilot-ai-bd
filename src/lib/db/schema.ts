@@ -1,0 +1,103 @@
+import {
+  pgTable, text, boolean, timestamp, integer, bigint, uuid, jsonb, index, uniqueIndex,
+} from "drizzle-orm/pg-core";
+
+/* ---------- Better Auth core tables ---------- */
+export const user = pgTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  image: text("image"),
+  role: text("role").notNull().default("user"), // 'user' | 'admin' | 'super_admin' (set server-side only)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const session = pgTable("session", {
+  id: text("id").primaryKey(),
+  expiresAt: timestamp("expires_at").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+}, (t) => [index("session_user_idx").on(t.userId)]);
+
+export const account = pgTable("account", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [index("account_user_idx").on(t.userId)]);
+
+export const verification = pgTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/** Persistent rate limiting (works on serverless, unlike in-memory). */
+export const rateLimit = pgTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull(),
+  count: integer("count").notNull(),
+  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+});
+
+/* ---------- Product tables (Phase 1 foundation) ---------- */
+export const profiles = pgTable("profiles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  headline: text("headline"),
+  country: text("country"),
+  city: text("city"),
+  portfolioUrl: text("portfolio_url"),
+  linkedinUrl: text("linkedin_url"),
+  githubUrl: text("github_url"),
+  websiteUrl: text("website_url"),
+  education: jsonb("education"),
+  experienceLevel: text("experience_level"),
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("profiles_user_uidx").on(t.userId)]);
+
+export const careerPreferences = pgTable("career_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  jobCategories: jsonb("job_categories").$type<string[]>(),
+  jobTitles: jsonb("job_titles").$type<string[]>(),
+  countries: jsonb("countries").$type<string[]>(),
+  cities: jsonb("cities").$type<string[]>(),
+  workArrangements: jsonb("work_arrangements").$type<string[]>(),
+  employmentTypes: jsonb("employment_types").$type<string[]>(),
+  salaryMin: integer("salary_min"),
+  salaryMax: integer("salary_max"),
+  salaryCurrency: text("salary_currency"),
+  visaSponsorship: boolean("visa_sponsorship"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("prefs_user_uidx").on(t.userId)]);
+
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actorId: text("actor_id").references(() => user.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  target: text("target"),
+  meta: jsonb("meta"), // never store secrets here
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [index("audit_actor_idx").on(t.actorId)]);
