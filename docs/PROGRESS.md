@@ -6,4 +6,8 @@ Done
 
 - Phase 3: onboarding (/dashboard/onboarding), CV upload/paste (PDF, DOCX, TXT, up to 4 MB, English/Bengali) at /dashboard/cv, AI analysis (task cv_analysis) validated with Zod, review and correct screen. Only extracted text is stored, not the file. Dashboard steps and AI status reflect real state (Ready only after a passing connection test).
 
-Next: Phase 4 job sources + Smart Feed; Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.
+- Phase 4: jobs feed (/dashboard/jobs): Jobicy, Arbeitnow, optional Adzuna and Jooble, Greenhouse/Lever company registry (/admin/sources), pasted circulars (Bengali/English) read by AI, TTL-cached ingest, dedupe, explainable relevance ranking, save/hide, coverage panel, daily cron. AI-written match scores come in Phase 5.
+
+- Phase 4b (Bangladesh): sector and work-mode filters, add-by-link and pasted circulars, official notice pages/RSS registry with robots.txt checks and an SSRF-safe fetcher.
+
+Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.

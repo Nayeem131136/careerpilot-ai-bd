@@ -32,6 +32,7 @@ export const TASKS = [
   { key: "cv_analysis", label: "CV analysis" },
   { key: "job_match", label: "Job matching & explanation" },
   { key: "draft_writing", label: "Application drafts" },
+  { key: "job_extract", label: "Job circular extraction" },
   { key: "translation", label: "Translation (English/Bengali)" },
   { key: "roadmap", label: "Skills & roadmap" },
   { key: "general", label: "General / other" },

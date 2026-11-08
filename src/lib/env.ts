@@ -25,6 +25,9 @@ const schema = z.object({
   MASTER_ENCRYPTION_SECRET: z.string().optional(),
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
   ADMIN_EMAILS: z.string().optional(),
+  ADZUNA_APP_ID: z.string().optional(),
+  ADZUNA_APP_KEY: z.string().optional(),
+  JOOBLE_API_KEY: z.string().optional(),
 });
 
 const parsed = schema.parse(process.env);

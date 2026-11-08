@@ -157,3 +157,81 @@ export const cvs = pgTable("cvs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => [uniqueIndex("cvs_user_uidx").on(t.userId)]);
+
+/* ---------- Jobs (Phase 4) ---------- */
+export const jobs = pgTable("jobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "cascade" }), // null = shared public pool
+  source: text("source").notNull(), // jobicy | arbeitnow | adzuna | jooble | greenhouse | lever | pasted
+  externalId: text("external_id").notNull(),
+  title: text("title").notNull(),
+  company: text("company").notNull(),
+  location: text("location"),
+  country: text("country"),
+  remote: boolean("remote"),
+  jobType: text("job_type"),
+  level: text("level"),
+  description: text("description").notNull().default(""), // plain text, truncated
+  url: text("url").notNull(),
+  postedAt: timestamp("posted_at"),
+  salaryMin: integer("salary_min"),
+  salaryMax: integer("salary_max"),
+  salaryCurrency: text("salary_currency"),
+  sector: text("sector"), // government | private | ngo | null (unknown)
+  workMode: text("work_mode"), // onsite | hybrid | remote | home | null
+  deadline: text("deadline"),
+  tags: jsonb("tags").$type<string[]>().notNull().default([]),
+  dedupeKey: text("dedupe_key").notNull(),
+  fetchedAt: timestamp("fetched_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("jobs_source_ext_uidx").on(t.source, t.externalId),
+  index("jobs_dedupe_idx").on(t.dedupeKey),
+  index("jobs_posted_idx").on(t.postedAt),
+  index("jobs_owner_idx").on(t.ownerUserId),
+]);
+
+export const jobFetchLog = pgTable("job_fetch_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  source: text("source").notNull(),
+  queryKey: text("query_key").notNull(),
+  ok: boolean("ok").notNull(),
+  count: integer("count").notNull().default(0),
+  error: text("error"),
+  fetchedAt: timestamp("fetched_at").notNull().defaultNow(),
+}, (t) => [index("job_fetch_log_idx").on(t.source, t.queryKey, t.fetchedAt)]);
+
+export const companySources = pgTable("company_sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  ats: text("ats").notNull(), // greenhouse | lever
+  token: text("token").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  lastFetchAt: timestamp("last_fetch_at"),
+  lastCount: integer("last_count"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("company_sources_uidx").on(t.ats, t.token)]);
+
+export const userJobState = pgTable("user_job_state", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  jobId: uuid("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  state: text("state").notNull(), // saved | hidden
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("user_job_state_uidx").on(t.userId, t.jobId)]);
+
+/** Public notice pages / RSS feeds (e.g. government job circulars) read by the shared crawler. */
+export const pageSources = pgTable("page_sources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  kind: text("kind").notNull(), // rss | html
+  sector: text("sector").notNull().default("government"),
+  country: text("country"),
+  enabled: boolean("enabled").notNull().default(true),
+  lastFetchAt: timestamp("last_fetch_at"),
+  lastCount: integer("last_count"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("page_sources_url_uidx").on(t.url)]);

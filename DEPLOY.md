@@ -23,3 +23,18 @@ Notes
 
 ## Phase 3 (onboarding + CV)
 Run `npm install` and `npm run db:migrate` (adds the `cvs` table, migration `0002_cvs`) before deploying. No new environment variables are needed. Scanned/image-only PDFs cannot be read; users can paste their CV text instead.
+
+## Phase 4 (jobs)
+1. `npm install` then `npm run db:migrate` (adds `jobs`, `job_fetch_log`, `company_sources`, `user_job_state`, migration `0003_jobs`).
+2. Optional env vars: `CRON_SECRET` (16+ random chars; enables the daily refresh in `vercel.json`), `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` (developer.adzuna.com), `JOOBLE_API_KEY` (jooble.org/api/about). Jobicy and Arbeitnow work without keys.
+3. Redeploy, open `/dashboard/jobs`, press "Refresh jobs". Admin: `/admin/sources` shows source status and lets you add Greenhouse/Lever company boards.
+4. Respect source terms: Jobicy asks for few checks per day (results are cached 6 hours); Remotive is intentionally not used.
+
+## Bangladesh jobs (Phase 4b)
+1. `npm run db:migrate` (migration `0004_bd_filters`: sector, work mode, deadline, `page_sources`).
+2. Job feed filters: Government/Private/NGO and Onsite/Hybrid/Remote/Work-from-home.
+3. Users can add any job by link (we fetch the public page and read it with AI) or by pasting a circular.
+4. Admin: `/admin/sources` > "Official notice pages and RSS feeds". Add an https page or RSS feed that publishes job circulars. We check robots.txt before adding and reading, read each page at most twice a day, and link back to the original. Pages that need JavaScript/login cannot be read; prefer RSS.
+5. We do not scrape Bdjobs, Facebook or LinkedIn (their terms forbid it). For Bdjobs, request an official API/partnership by email.
+
+Note: only the admin can add jobs by link or pasted circular; they are published to all users as "Added by CareerPilot". Users cannot add jobs. No new migration.
