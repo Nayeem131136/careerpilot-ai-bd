@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { BriefcaseBusiness, ChevronsLeft, ChevronsRight, FileText, GraduationCap, KanbanSquare, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { BriefcaseBusiness, ChevronsLeft, ChevronsRight, FileText, GraduationCap, KanbanSquare, LayoutDashboard, LogOut, Settings, ShieldCheck } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -17,7 +17,8 @@ const nav = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-export function AppShell({ user, children }: { user: { name: string; email: string }; children: React.ReactNode }) {
+export function AppShell({ user, isAdmin = false, children }: { user: { name: string; email: string }; isAdmin?: boolean; children: React.ReactNode }) {
+  const items = isAdmin ? [...nav, { href: "/admin/ai", label: "Admin", icon: ShieldCheck, exact: false }] : nav;
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -33,7 +34,7 @@ export function AppShell({ user, children }: { user: { name: string; email: stri
       <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border bg-card/40 p-3 transition-[width] md:flex", collapsed ? "w-[68px]" : "w-64")}>
         <div className="flex h-12 items-center px-1.5">{collapsed ? <LogoMark /> : <Logo href="/dashboard" />}</div>
         <nav className="mt-4 flex flex-1 flex-col gap-1" aria-label="App">
-          {nav.map((n) => {
+          {items.map((n) => {
             const active = n.exact ? pathname === n.href : pathname.startsWith(n.href);
             return (
               <Link key={n.href} href={n.href} title={n.label} aria-current={active ? "page" : undefined}
@@ -57,7 +58,7 @@ export function AppShell({ user, children }: { user: { name: string; email: stri
           </div>
         </header>
         <nav className="flex gap-1 overflow-x-auto border-b border-border px-2 py-2 md:hidden" aria-label="App mobile">
-          {nav.map((n) => {
+          {items.map((n) => {
             const active = n.exact ? pathname === n.href : pathname.startsWith(n.href);
             return <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cn("flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium", active ? "bg-primary/15 text-fg" : "text-muted")}><n.icon size={15} />{n.label}</Link>;
           })}

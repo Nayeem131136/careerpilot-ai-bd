@@ -15,6 +15,12 @@ export type Db = NodePgDatabase<typeof schema>;
 const g = process as unknown as { __cpDb?: Promise<Db | null> };
 
 async function create(): Promise<Db | null> {
+  if (env.DATABASE_URL && !/neon\.tech|vercel-storage\.com/.test(env.DATABASE_URL)) {
+    // Any other Postgres (local, Supabase, RDS...) uses the standard TCP driver.
+    const { Pool: PgPool } = await import("pg");
+    const { drizzle: drizzlePg } = await import("drizzle-orm/node-postgres");
+    return drizzlePg({ client: new PgPool({ connectionString: env.DATABASE_URL, max: 5 }), schema }) as unknown as Db;
+  }
   if (env.DATABASE_URL) {
     neonConfig.webSocketConstructor = ws;
     const pool = new Pool({ connectionString: env.DATABASE_URL });

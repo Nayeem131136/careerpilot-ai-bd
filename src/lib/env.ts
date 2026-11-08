@@ -24,6 +24,7 @@ const schema = z.object({
   CRON_SECRET: z.string().optional(),
   MASTER_ENCRYPTION_SECRET: z.string().optional(),
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
+  ADMIN_EMAILS: z.string().optional(),
 });
 
 const parsed = schema.parse(process.env);
@@ -46,6 +47,12 @@ export const authSecret: string | undefined =
     : isProd
       ? undefined
       : "dev-only-secret-change-me-dev-only-secret-0123456789";
+
+/** Comma-separated emails that are promoted to admin on sign-in (server-side only). */
+export const adminEmails: string[] = (parsed.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
 
 export const features = {
   database: Boolean(parsed.DATABASE_URL) || !isProd, // local PGlite only in dev

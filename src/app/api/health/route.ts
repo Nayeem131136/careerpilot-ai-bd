@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { db, dbConfigured } from "@/lib/db";
 import { features, authSecret } from "@/lib/env";
+import { getAiStatus } from "@/lib/ai/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export async function GET() {
       database = "error";
     }
   }
+  const ai = database === "ok" ? await getAiStatus() : { configured: false };
   const status = database === "ok" && Boolean(authSecret) ? "ok" : "degraded";
   return Response.json(
     {
@@ -26,7 +28,7 @@ export async function GET() {
       email: features.email ? "configured" : "not_configured",
       storage: features.blob ? "configured" : "not_configured",
       aiEncryptionSecret: features.encryptionSecret ? "configured" : "not_configured",
-      ai: "not_configured_yet (Phase 2)",
+      ai: ai.configured ? "configured" : "not_configured",
       time: new Date().toISOString(),
     },
     { status: status === "ok" ? 200 : 503, headers: { "Cache-Control": "no-store" } },

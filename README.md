@@ -10,7 +10,7 @@ npm install
 cp .env.example .env.local   # optional: without DATABASE_URL, an embedded local Postgres (PGlite, in .data/) is used
 npm run dev
 ```
-Open http://localhost:3000. Health check: `/api/health`.
+Open http://localhost:3000. Any non-Neon `DATABASE_URL` (e.g. a local Postgres) is supported via the standard driver. Admin: set `ADMIN_EMAILS` and `MASTER_ENCRYPTION_SECRET`, then visit `/admin/ai`. Health check: `/api/health`.
 
 ## Scripts
 `npm run typecheck` · `npm run lint` · `npm run build` · `npm run db:generate` · `npm run db:migrate` (Neon) · `npm run db:studio`

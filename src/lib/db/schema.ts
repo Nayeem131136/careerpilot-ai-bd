@@ -101,3 +101,43 @@ export const auditLogs = pgTable("audit_logs", {
   meta: jsonb("meta"), // never store secrets here
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [index("audit_actor_idx").on(t.actorId)]);
+
+/* ---------- AI Control Center (Phase 2) ---------- */
+export const aiProviders = pgTable("ai_providers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  providerKey: text("provider_key").notNull(), // e.g. openai, anthropic, gemini, groq, custom
+  label: text("label").notNull(),
+  apiKeyEnc: text("api_key_enc").notNull(), // AES-256-GCM, never returned to the client
+  keyLast4: text("key_last4").notNull(),
+  baseUrl: text("base_url"),
+  model: text("model").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  lastTestAt: timestamp("last_test_at"),
+  lastTestOk: boolean("last_test_ok"),
+  lastTestMsg: text("last_test_msg"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("ai_providers_key_uidx").on(t.providerKey)]);
+
+export const aiSettings = pgTable("ai_settings", {
+  id: text("id").primaryKey(), // always 'global'
+  primaryProviderId: uuid("primary_provider_id").references(() => aiProviders.id, { onDelete: "set null" }),
+  fallbackProviderId: uuid("fallback_provider_id").references(() => aiProviders.id, { onDelete: "set null" }),
+  routing: jsonb("routing").$type<Record<string, { providerId?: string; model?: string }>>().notNull().default({}),
+  dailyUserLimit: integer("daily_user_limit").notNull().default(50),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const aiUsage = pgTable("ai_usage", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  task: text("task").notNull(),
+  providerKey: text("provider_key").notNull(),
+  model: text("model").notNull(),
+  ok: boolean("ok").notNull(),
+  latencyMs: integer("latency_ms"),
+  inputTokens: integer("input_tokens"),
+  outputTokens: integer("output_tokens"),
+  error: text("error"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [index("ai_usage_created_idx").on(t.createdAt), index("ai_usage_user_idx").on(t.userId, t.createdAt)]);
