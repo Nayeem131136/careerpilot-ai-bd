@@ -10,6 +10,8 @@ const TIMEOUT_MS = 45_000;
 export function assertSafeBaseUrl(raw: string): URL {
   let u: URL;
   try { u = new URL(raw); } catch { throw new Error("Base URL is not a valid URL."); }
+  // Local development only (never in production): allow a mock server on localhost for testing.
+  if (process.env.NODE_ENV !== "production" && process.env.AI_DEV_ALLOW_LOCAL === "1") return u;
   if (u.protocol !== "https:") throw new Error("Base URL must use https.");
   const h = u.hostname.toLowerCase();
   const privateV4 = /^(10\.|127\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;

@@ -141,3 +141,19 @@ export const aiUsage = pgTable("ai_usage", {
   error: text("error"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [index("ai_usage_created_idx").on(t.createdAt), index("ai_usage_user_idx").on(t.userId, t.createdAt)]);
+
+/* ---------- CV (Phase 3) ---------- */
+export const cvs = pgTable("cvs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  fileName: text("file_name"),
+  sourceType: text("source_type").notNull(), // 'upload' | 'paste'
+  rawText: text("raw_text").notNull(),
+  parsed: jsonb("parsed"), // validated CvAnalysis (see lib/cv/schema.ts)
+  language: text("language"), // en | bn | mixed
+  status: text("status").notNull().default("pending"), // pending | analyzed | failed
+  error: text("error"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("cvs_user_uidx").on(t.userId)]);

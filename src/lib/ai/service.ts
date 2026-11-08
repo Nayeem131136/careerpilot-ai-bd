@@ -18,14 +18,14 @@ export async function getAiSettings() {
 }
 
 /** Public, secret-free status used by dashboards and /api/health. */
-export async function getAiStatus() {
+export async function getAiStatus(): Promise<{ configured: boolean; provider?: string; model?: string; lastTestOk?: boolean | null }> {
   try {
     const s = await getAiSettings();
-    if (!s.primaryProviderId) return { configured: false as const };
+    if (!s.primaryProviderId) return { configured: false };
     const [p] = await db.select().from(schema.aiProviders).where(eq(schema.aiProviders.id, s.primaryProviderId));
-    return { configured: Boolean(p?.enabled), provider: p?.label, model: p?.model };
+    return { configured: Boolean(p?.enabled), provider: p?.label, model: p?.model, lastTestOk: p?.lastTestOk ?? null };
   } catch {
-    return { configured: false as const };
+    return { configured: false };
   }
 }
 

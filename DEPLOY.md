@@ -20,3 +20,6 @@ Notes
 2. Set `MASTER_ENCRYPTION_SECRET` (32+ random chars: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`). Keep it forever: changing it makes stored AI keys unreadable (re-enter them).
 3. Redeploy, open `/admin/ai`, pick a provider, paste its API key, Save, then "Test connection". Choose it as Primary and Save settings.
 4. New database tables are added by migration `0001_ai_control`: run `npm run db:migrate` with your Neon `DATABASE_URL` before using it.
+
+## Phase 3 (onboarding + CV)
+Run `npm install` and `npm run db:migrate` (adds the `cvs` table, migration `0002_cvs`) before deploying. No new environment variables are needed. Scanned/image-only PDFs cannot be read; users can paste their CV text instead.
