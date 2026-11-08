@@ -2,7 +2,7 @@ import "server-only";
 import { and, count, eq, gte } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { decryptSecret } from "./crypto";
-import { callProvider, type LlmRequest, type LlmResult } from "./adapters";
+import { callProvider, listModels, type LlmRequest, type LlmResult } from "./adapters";
 import { providerDef, type TaskKey } from "./providers";
 
 export class AiNotConfiguredError extends Error {
@@ -92,7 +92,7 @@ export async function testProvider(id: string, userId: string) {
   const started = Date.now();
   let ok = false; let message = "";
   try {
-    const { r, model } = await run(row, { prompt: "Reply with the single word: OK", maxTokens: 16, temperature: 0 });
+    const { r, model } = await run(row, { prompt: "Reply with the single word: OK", maxTokens: 512, temperature: 0 });
     ok = true; message = `Connected (${Date.now() - started} ms). Reply: ${r.text.trim().slice(0, 40)}`;
     await log(row, model, "test", userId, true, started, r);
   } catch (e) {
@@ -101,4 +101,12 @@ export async function testProvider(id: string, userId: string) {
   }
   await db.update(schema.aiProviders).set({ lastTestAt: new Date(), lastTestOk: ok, lastTestMsg: message }).where(eq(schema.aiProviders.id, id));
   return { ok, message };
+}
+
+/** Models available to a saved provider key. */
+export async function fetchModels(id: string): Promise<string[]> {
+  const [row] = await db.select().from(schema.aiProviders).where(eq(schema.aiProviders.id, id));
+  const def = row && providerDef(row.providerKey);
+  if (!row || !def) throw new Error("Provider not found.");
+  return listModels(def.type, { apiKey: decryptSecret(row.apiKeyEnc), baseUrl: row.baseUrl ?? def.baseUrl });
 }

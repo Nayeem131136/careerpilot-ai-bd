@@ -60,7 +60,7 @@ export async function callProvider(
       model: cfg.model, messages, max_tokens: maxTokens, temperature,
     })) as { choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } };
     const text = j.choices?.[0]?.message?.content;
-    if (!text) throw new Error("Empty response from provider.");
+    if (!text) throw new Error("Empty reply. This looks like a reasoning model that used its whole token budget thinking; pick a non-reasoning model or raise the limit.");
     return { text, inputTokens: j.usage?.prompt_tokens, outputTokens: j.usage?.completion_tokens };
   }
 
@@ -86,4 +86,32 @@ export async function callProvider(
   const text = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
   if (!text) throw new Error("Empty response from provider.");
   return { text, inputTokens: j.usageMetadata?.promptTokenCount, outputTokens: j.usageMetadata?.candidatesTokenCount };
+}
+
+/** Lists model ids the key can actually use, so the admin never has to guess a model name. */
+export async function listModels(type: ProviderType, cfg: { apiKey: string; baseUrl?: string }): Promise<string[]> {
+  let url: string;
+  let headers: Record<string, string>;
+  if (type === "openai") {
+    url = `${assertSafeBaseUrl(cfg.baseUrl ?? "").toString().replace(/\/+$/, "")}/models`;
+    headers = { authorization: `Bearer ${cfg.apiKey}` };
+  } else if (type === "anthropic") {
+    url = "https://api.anthropic.com/v1/models?limit=100";
+    headers = { "x-api-key": cfg.apiKey, "anthropic-version": "2023-06-01" };
+  } else {
+    url = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=200";
+    headers = { "x-goog-api-key": cfg.apiKey };
+  }
+  let res: Response;
+  try {
+    res = await fetch(url, { headers, signal: AbortSignal.timeout(20_000), redirect: "error" });
+  } catch {
+    throw new Error("Could not reach the provider to list models.");
+  }
+  if (!res.ok) throw new Error(`HTTP ${res.status}: could not list models (check the API key).`);
+  const j = (await res.json()) as { data?: { id: string }[]; models?: { name: string; supportedGenerationMethods?: string[] }[] };
+  const ids = type === "gemini"
+    ? (j.models ?? []).filter((m) => m.supportedGenerationMethods?.includes("generateContent")).map((m) => m.name.replace(/^models\//, ""))
+    : (j.data ?? []).map((m) => m.id);
+  return ids.filter((id) => !/embed|whisper|tts|moderation|guard|image|audio|transcribe/i.test(id)).sort();
 }

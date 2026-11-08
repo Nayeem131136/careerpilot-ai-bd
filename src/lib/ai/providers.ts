@@ -13,8 +13,8 @@ export type ProviderDef = {
 };
 
 export const PROVIDERS: ProviderDef[] = [
-  { key: "gemini", label: "Google Gemini", type: "gemini", tier: "free-tier", defaultModel: "gemini-2.5-flash", note: "Generous free tier via Google AI Studio.", keyUrl: "https://aistudio.google.com/apikey" },
-  { key: "groq", label: "Groq", type: "openai", tier: "free-tier", baseUrl: "https://api.groq.com/openai/v1", defaultModel: "llama-3.3-70b-versatile", note: "Very fast, free tier with rate limits.", keyUrl: "https://console.groq.com/keys" },
+  { key: "gemini", label: "Google Gemini", type: "gemini", tier: "free-tier", defaultModel: "gemini-3.8-flash", note: "Generous free tier via Google AI Studio.", keyUrl: "https://aistudio.google.com/apikey" },
+  { key: "groq", label: "Groq", type: "openai", tier: "free-tier", baseUrl: "https://api.groq.com/openai/v1", defaultModel: "llama-3.1-8b-instant", note: "Very fast, free tier with rate limits.", keyUrl: "https://console.groq.com/keys" },
   { key: "openrouter", label: "OpenRouter", type: "openai", tier: "free-tier", baseUrl: "https://openrouter.ai/api/v1", defaultModel: "meta-llama/llama-3.3-70b-instruct:free", note: "One key, many models; some are free (':free' suffix).", keyUrl: "https://openrouter.ai/keys" },
   { key: "mistral", label: "Mistral", type: "openai", tier: "free-tier", baseUrl: "https://api.mistral.ai/v1", defaultModel: "mistral-small-latest", note: "Free experimentation tier available.", keyUrl: "https://console.mistral.ai/api-keys" },
   { key: "cerebras", label: "Cerebras", type: "openai", tier: "free-tier", baseUrl: "https://api.cerebras.ai/v1", defaultModel: "llama3.1-8b", note: "Fast inference, free tier.", keyUrl: "https://cloud.cerebras.ai" },

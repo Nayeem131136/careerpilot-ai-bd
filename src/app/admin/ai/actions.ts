@@ -7,7 +7,7 @@ import { env } from "@/lib/env";
 import { encryptSecret } from "@/lib/ai/crypto";
 import { assertSafeBaseUrl } from "@/lib/ai/adapters";
 import { providerDef, TASKS } from "@/lib/ai/providers";
-import { testProvider } from "@/lib/ai/service";
+import { fetchModels, testProvider } from "@/lib/ai/service";
 import { requireAdminAction } from "@/lib/session";
 
 type Result = { ok: boolean; message: string };
@@ -99,5 +99,15 @@ export async function saveSettings(input: z.input<typeof settingsSchema>): Promi
     return done("Settings saved.");
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Something went wrong.");
+  }
+}
+
+export async function loadModels(id: string): Promise<Result & { models: string[] }> {
+  try {
+    await requireAdminAction();
+    const models = await fetchModels(z.string().uuid().parse(id));
+    return { ok: true, message: `${models.length} models available for this key.`, models };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Something went wrong.", models: [] };
   }
 }

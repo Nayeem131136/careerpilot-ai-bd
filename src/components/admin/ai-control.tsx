@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import { CheckCircle2, ExternalLink, KeyRound, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, Input } from "@/components/ui/primitives";
-import { removeProvider, saveProvider, saveSettings, testConnection } from "@/app/admin/ai/actions";
+import { loadModels, removeProvider, saveProvider, saveSettings, testConnection } from "@/app/admin/ai/actions";
 
 type Cat = { key: string; label: string; tier: "free" | "free-tier" | "paid"; defaultModel: string; note: string; keyUrl?: string; custom: boolean };
 type Prov = { id: string; providerKey: string; label: string; keyLast4: string; baseUrl: string | null; model: string; enabled: boolean; lastTestAt: string | null; lastTestOk: boolean | null; lastTestMsg: string | null };
@@ -18,6 +18,7 @@ export function AiControl({ catalogue, tasks, providers, settings, encryptionRea
   const [choice, setChoice] = useState(catalogue[0].key);
   const [form, setForm] = useState({ apiKey: "", model: catalogue[0].defaultModel, baseUrl: "" });
   const [s, setS] = useState(settings);
+  const [models, setModels] = useState<string[]>([]);
 
   const cat = catalogue.find((c) => c.key === choice)!;
   const existing = providers.find((p) => p.providerKey === choice);
@@ -29,6 +30,7 @@ export function AiControl({ catalogue, tasks, providers, settings, encryptionRea
     setChoice(key);
     setForm({ apiKey: "", model: e?.model ?? c.defaultModel, baseUrl: e?.baseUrl ?? "" });
     setMsg(null);
+    setModels([]);
   }
 
   return (
@@ -48,7 +50,18 @@ export function AiControl({ catalogue, tasks, providers, settings, encryptionRea
           <div className="space-y-1.5">
             <label htmlFor="model" className="text-sm font-medium">Model</label>
             <Input id="model" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="model name" />
-            <p className="text-xs text-muted">Editable, because vendors rename models.</p>
+            {existing && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" variant="secondary" className="px-3 py-1.5 text-xs" disabled={pending} onClick={() => start(async () => { const r = await loadModels(existing.id); report(r); setModels(r.models); })}>Load available models</Button>
+                {models.length > 0 && (
+                  <select aria-label="Available models" className={selectCls + " max-w-xs"} value={models.includes(form.model) ? form.model : ""} onChange={(e) => e.target.value && setForm({ ...form, model: e.target.value })}>
+                    <option value="">Pick a model…</option>
+                    {models.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                )}
+              </div>
+            )}
+            <p className="text-xs text-muted">Editable. Use “Load available models” to see exactly what your key can use.</p>
           </div>
           {cat.custom && (
             <div className="space-y-1.5 md:col-span-2">
