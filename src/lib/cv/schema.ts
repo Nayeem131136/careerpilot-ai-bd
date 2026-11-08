@@ -21,6 +21,11 @@ export const cvAnalysisSchema = z.object({
     start: str(30).nullish().transform((v) => v || null), end: str(30).nullish().transform((v) => v || null),
     description: str(800).default(""),
   })).max(15).default([]),
+  projects: z.array(z.object({
+    name: str(140).default(""), role: str(80).nullish().transform((v) => v || null),
+    description: str(900).default(""), technologies: list(25, 50).default([]),
+    url: str(300).nullish().transform((v) => v || null),
+  })).max(15).default([]),
   education: z.array(z.object({
     degree: str(160).default(""), institution: str(160).default(""),
     year: str(30).nullish().transform((v) => v || null),

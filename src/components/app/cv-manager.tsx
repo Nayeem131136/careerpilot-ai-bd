@@ -105,6 +105,7 @@ export function CvManager({ cv, aiReady }: { cv: Cv | null; aiReady: boolean }) 
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{cv.fileName ?? "Pasted text"}</p>
               <p className="text-xs text-muted">{cv.status === "analyzed" ? (cv.reviewed ? "Analysed and reviewed" : "Analysed, please review below") : cv.status === "failed" ? "Analysis failed" : "Analysing…"}</p></div>
             {cv.status === "analyzed" && <Badge tone={cv.reviewed ? "success" : "warn"}>{cv.reviewed ? "Reviewed" : "Needs review"}</Badge>}
+            {cv.status === "analyzed" && <Button variant="secondary" disabled={busy !== null} onClick={() => run("analyzing", () => call("PATCH"), "CV analysed again. Please review the details below.")}>Re-analyse</Button>}
             <Button variant="secondary" onClick={() => setReplace(true)}>Replace</Button>
             <Button variant="danger" aria-label="Delete CV" onClick={() => { if (confirm("Delete your CV and its analysis?")) run("delete", () => call("DELETE"), "CV deleted."); }}><Trash2 size={15} /></Button>
           </Card>
@@ -146,6 +147,14 @@ export function CvManager({ cv, aiReady }: { cv: Cv | null; aiReady: boolean }) 
               {edit.experience.length > 0 && (
                 <Card><h2 className="font-display text-lg font-bold">Experience found</h2>
                   <ul className="mt-3 space-y-3 text-sm">{edit.experience.map((x, i) => <li key={i}><p className="font-medium">{x.title}{x.company && ` · ${x.company}`}</p><p className="text-xs text-muted">{[x.start, x.end].filter(Boolean).join(" – ")}</p>{x.description && <p className="mt-1 text-muted">{x.description}</p>}</li>)}</ul></Card>
+              )}
+              {edit.projects?.length > 0 && (
+                <Card><h2 className="font-display text-lg font-bold">Projects found ({edit.projects.length})</h2>
+                  <ul className="mt-3 space-y-4 text-sm">{edit.projects.map((x, i) => (
+                    <li key={i}><p className="font-medium">{x.name}{x.role && <span className="font-normal text-muted"> · {x.role}</span>}</p>
+                      {x.description && <p className="mt-1 text-muted">{x.description}</p>}
+                      {x.technologies.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{x.technologies.map((t) => <span key={t} className="rounded-full border border-border px-2 py-0.5 text-xs">{t}</span>)}</div>}
+                    </li>))}</ul></Card>
               )}
               {edit.education.length > 0 && (
                 <Card><h2 className="font-display text-lg font-bold">Education found</h2>
