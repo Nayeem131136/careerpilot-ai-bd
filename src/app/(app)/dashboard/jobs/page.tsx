@@ -32,7 +32,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold">Jobs</h1>
-        <p className="mt-1 text-sm text-muted">Real listings from public sources, ordered by how well they fit your CV and preferences. You always apply yourself, we never apply for you.</p>
+        <p className="mt-1 text-sm text-muted">Every kind of job in Bangladesh, plus remote jobs from anywhere in the world. Pick a country to see all jobs there. Ordered by how well they fit your CV and preferences. You always apply yourself, we never apply for you.</p>
       </div>
 
       {feed.profile.cvStatus === "none" && (
@@ -44,7 +44,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       <form className="grid gap-3 rounded-2xl border border-border bg-card/50 p-4 sm:grid-cols-2 lg:grid-cols-5" role="search">
         <input name="q" defaultValue={filters.q} placeholder="Search title or company" aria-label="Search jobs" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary" />
         <select name="country" defaultValue={filters.country} aria-label="Country" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
-          <option value="">All countries</option>{COUNTRIES.filter((c) => !c.startsWith("Remote")).map((c) => <option key={c}>{c}</option>)}
+          <option value="">Bangladesh + remote worldwide</option>{COUNTRIES.filter((c) => !c.startsWith("Remote")).map((c) => <option key={c}>{c}</option>)}
         </select>
         <select name="source" defaultValue={filters.source} aria-label="Source" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">All sources</option>{Object.entries(SOURCE_LABELS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
