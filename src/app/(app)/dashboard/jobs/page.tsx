@@ -41,23 +41,25 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
       <JobTools />
 
-      <form className="grid gap-3 rounded-2xl border border-border bg-card/50 p-4 md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto_auto]" role="search">
-        <input name="q" defaultValue={filters.q} placeholder="Search title or company" aria-label="Search jobs" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary" />
-        <select name="country" defaultValue={filters.country} aria-label="Country" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+      <form className="grid gap-3 rounded-2xl border border-border bg-card/50 p-4 sm:grid-cols-2 lg:grid-cols-5" role="search">
+        <input name="q" defaultValue={filters.q} placeholder="Search title or company" aria-label="Search jobs" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary" />
+        <select name="country" defaultValue={filters.country} aria-label="Country" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">All countries</option>{COUNTRIES.filter((c) => !c.startsWith("Remote")).map((c) => <option key={c}>{c}</option>)}
         </select>
-        <select name="source" defaultValue={filters.source} aria-label="Source" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+        <select name="source" defaultValue={filters.source} aria-label="Source" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">All sources</option>{Object.entries(SOURCE_LABELS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
-        <select name="sector" defaultValue={filters.sector} aria-label="Sector" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+        <select name="sector" defaultValue={filters.sector} aria-label="Sector" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">Govt + private</option><option value="government">Government</option><option value="private">Private</option><option value="ngo">NGO</option>
         </select>
-        <select name="workMode" defaultValue={filters.workMode} aria-label="Work mode" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+        <select name="workMode" defaultValue={filters.workMode} aria-label="Work mode" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">Any work mode</option><option value="onsite">Onsite</option><option value="hybrid">Hybrid</option><option value="remote">Remote</option><option value="home">Work from home</option>
         </select>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 sm:col-span-2 lg:col-span-5">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="remote" value="1" defaultChecked={filters.remote} className="size-4 accent-[var(--primary)]" />Remote</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="saved" value="1" defaultChecked={filters.saved} className="size-4 accent-[var(--primary)]" />Saved</label>
-        <button className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white md:col-span-7 md:justify-self-start">Apply filters</button>
+        <button className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white">Apply filters</button>
+        </div>
       </form>
 
       {feed.jobs.length === 0 ? (
