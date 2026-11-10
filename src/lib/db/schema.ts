@@ -235,3 +235,14 @@ export const pageSources = pgTable("page_sources", {
   lastError: text("last_error"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [uniqueIndex("page_sources_url_uidx").on(t.url)]);
+
+/** AI-written match explanation for one user and one job (Phase 5). Cached; regenerated when the CV changes. */
+export const jobMatches = pgTable("job_matches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  jobId: uuid("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  score: integer("score").notNull(),
+  data: jsonb("data").notNull(), // validated MatchResult (see lib/jobs/match.ts)
+  cvUpdatedAt: timestamp("cv_updated_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("job_matches_uidx").on(t.userId, t.jobId)]);

@@ -38,3 +38,9 @@ Run `npm install` and `npm run db:migrate` (adds the `cvs` table, migration `000
 5. We do not scrape Bdjobs, Facebook or LinkedIn (their terms forbid it). For Bdjobs, request an official API/partnership by email.
 
 Note: only the admin can add jobs by link or pasted circular; they are published to all users as "Added by CareerPilot". Users cannot add jobs. No new migration.
+
+## Phase 5: AI match explanations
+1. `npm install` then `npm run db:migrate` (migration `0005_job_matches`).
+2. No new environment variables. It uses the AI provider set in the admin panel (task "job_match", which can be routed to its own model).
+3. On the Jobs page each job has a "Why this fits? (AI match)" button. It compares the user's reviewed CV with the posting and shows a score, strengths, gaps, skills to add and tips. Results are saved and reused until the CV changes. The "quick fit" badge is the fast keyword score used for ordering.
+4. It counts against the per-user daily AI limit (Admin > AI).

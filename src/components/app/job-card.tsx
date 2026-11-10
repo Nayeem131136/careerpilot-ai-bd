@@ -3,11 +3,14 @@ import { useState } from "react";
 import { Bookmark, EyeOff, ExternalLink } from "lucide-react";
 import { Badge, Card } from "@/components/ui/primitives";
 import { SOURCE_LABELS } from "@/lib/jobs/types";
+import type { MatchResult } from "@/lib/jobs/match-types";
+import { MatchPanel } from "./match-panel";
 
 export type JobView = {
   id: string; title: string; company: string; location: string | null; country: string | null; remote: boolean | null; jobType: string | null;
   description: string; url: string; source: string; postedAt: string | null; saved: boolean; salary: string | null;
   sector: string | null; workMode: string | null; deadline: string | null; score: number | null; matchedSkills: string[]; notes: string[];
+  ai: MatchResult | null; canMatch: boolean;
 };
 
 function ago(iso: string | null) {
@@ -35,7 +38,7 @@ export function JobCard({ job }: { job: JobView }) {
           <h3 className="font-display text-base font-bold leading-snug">{job.title}</h3>
           <p className="text-sm text-muted">{job.company}{job.location ? ` · ${job.location}` : ""}{ago(job.postedAt) ? ` · ${ago(job.postedAt)}` : ""}</p>
         </div>
-        {job.score != null && <Badge tone={tone ?? "default"}>{job.score}% fit</Badge>}
+        {job.score != null && <Badge tone={tone ?? "default"}>{job.score}% quick fit</Badge>}
       </div>
       <div className="flex flex-wrap gap-1.5 text-xs">
         {job.sector && job.sector !== "private" && <span className="rounded-full border border-cyan/40 bg-cyan/10 px-2 py-0.5">{job.sector === "government" ? "Government" : "NGO"}</span>}
@@ -46,6 +49,7 @@ export function JobCard({ job }: { job: JobView }) {
         {job.matchedSkills.slice(0, 6).map((s) => <span key={s} className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5">{s}</span>)}
       </div>
       {job.notes.length > 0 && <p className="text-xs text-muted">{job.notes.join(" · ")}</p>}
+      <MatchPanel jobId={job.id} initial={job.ai} canMatch={job.canMatch} />
       {open && <p className="whitespace-pre-line text-sm text-muted">{job.description.slice(0, 1800)}{job.description.length > 1800 ? "…" : ""}</p>}
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <button type="button" onClick={() => setOpen((v) => !v)} className="text-primary hover:underline">{open ? "Hide details" : "Details"}</button>

@@ -10,4 +10,6 @@ Done
 
 - Phase 4b (Bangladesh): sector and work-mode filters, add-by-link and pasted circulars, official notice pages/RSS registry with robots.txt checks and an SSRF-safe fetcher.
 
+- Phase 5: AI match explanations per job (score, strengths, gaps, missing skills, tips), cached per user and CV version.
+
 Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.
