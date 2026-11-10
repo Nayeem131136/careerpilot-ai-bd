@@ -42,7 +42,9 @@ function Notice({ tone, children }: { tone: "danger" | "success" | "warn"; child
 
 export function LoginForm({ providers }: { providers: Providers }) {
   const router = useRouter();
-  const next = useSearchParams().get("next");
+  const sp = useSearchParams();
+  const next = sp.get("next");
+  const suspended = sp.get("suspended") === "1";
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -68,6 +70,7 @@ export function LoginForm({ providers }: { providers: Providers }) {
       <p className="mt-2 text-sm text-muted">Log in to continue to your dashboard.</p>
       <div className="mt-6"><SocialButtons providers={providers} /></div>
       <form onSubmit={onSubmit} noValidate className="space-y-4">
+        {suspended && <Notice tone="danger">This account has been suspended. Contact the site admin if you think this is a mistake.</Notice>}
         {formError && <Notice tone="danger">{formError}</Notice>}
         <Field label="Email" htmlFor="email" error={errors.email}><Input id="email" name="email" type="email" autoComplete="email" required /></Field>
         <Field label="Password" htmlFor="password" error={errors.password}><Input id="password" name="password" type="password" autoComplete="current-password" required /></Field>

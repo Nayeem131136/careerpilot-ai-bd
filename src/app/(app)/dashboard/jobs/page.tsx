@@ -7,6 +7,9 @@ import { coverage } from "@/lib/jobs/ingest";
 import { getFeed } from "@/lib/jobs/feed";
 import { SOURCE_LABELS } from "@/lib/jobs/types";
 import { COUNTRIES } from "@/lib/options";
+import { and, eq, inArray } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import { matchSchema } from "@/lib/jobs/match-types";
 import { requireSession } from "@/lib/session";
 
 export const metadata = { title: "Jobs" };
@@ -19,6 +22,9 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const s = await requireSession();
   const filters = { q: one(sp.q).slice(0, 80), country: one(sp.country).slice(0, 60), remote: one(sp.remote) === "1", source: one(sp.source).slice(0, 20), sector: ["government", "private", "ngo"].includes(one(sp.sector)) ? one(sp.sector) : "", workMode: ["onsite", "hybrid", "remote", "home"].includes(one(sp.workMode)) ? one(sp.workMode) : "", saved: one(sp.saved) === "1", page: Math.max(1, Number(one(sp.page)) || 1) };
   const [feed, cov] = await Promise.all([getFeed(s.user.id, filters), coverage()]);
+  const ids = feed.jobs.map((j) => j.id);
+  const matchRows = ids.length ? await db.select().from(schema.jobMatches).where(and(eq(schema.jobMatches.userId, s.user.id), inArray(schema.jobMatches.jobId, ids))) : [];
+  const matches = new Map(matchRows.map((m) => { const p = matchSchema.safeParse(m.data); return [m.jobId, p.success ? p.data : null] as const; }));
   const qs = (over: Record<string, string | number | undefined>) => {
     const p = new URLSearchParams();
     const all = { q: filters.q, country: filters.country, remote: filters.remote ? "1" : "", source: filters.source, sector: filters.sector, workMode: filters.workMode, saved: filters.saved ? "1" : "", ...over };
@@ -32,7 +38,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold">Jobs</h1>
-        <p className="mt-1 text-sm text-muted">Real listings from public sources, ordered by how well they fit your CV and preferences. You always apply yourself, we never apply for you.</p>
+        <p className="mt-1 text-sm text-muted">Every kind of job in Bangladesh, plus remote jobs from anywhere in the world. Pick a country to see all jobs there. Ordered by how well they fit your CV and preferences. You always apply yourself, we never apply for you.</p>
       </div>
 
       {feed.profile.cvStatus === "none" && (
@@ -41,23 +47,25 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
       <JobTools />
 
-      <form className="grid gap-3 rounded-2xl border border-border bg-card/50 p-4 md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto_auto]" role="search">
-        <input name="q" defaultValue={filters.q} placeholder="Search title or company" aria-label="Search jobs" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary" />
-        <select name="country" defaultValue={filters.country} aria-label="Country" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
-          <option value="">All countries</option>{COUNTRIES.filter((c) => !c.startsWith("Remote")).map((c) => <option key={c}>{c}</option>)}
+      <form className="grid gap-3 rounded-2xl border border-border bg-card/50 p-4 sm:grid-cols-2 lg:grid-cols-5" role="search">
+        <input name="q" defaultValue={filters.q} placeholder="Search title or company" aria-label="Search jobs" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary" />
+        <select name="country" defaultValue={filters.country} aria-label="Country" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+          <option value="">Bangladesh + remote</option>{COUNTRIES.filter((c) => !c.startsWith("Remote")).map((c) => <option key={c}>{c}</option>)}
         </select>
-        <select name="source" defaultValue={filters.source} aria-label="Source" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+        <select name="source" defaultValue={filters.source} aria-label="Source" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">All sources</option>{Object.entries(SOURCE_LABELS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
-        <select name="sector" defaultValue={filters.sector} aria-label="Sector" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+        <select name="sector" defaultValue={filters.sector} aria-label="Sector" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">Govt + private</option><option value="government">Government</option><option value="private">Private</option><option value="ngo">NGO</option>
         </select>
-        <select name="workMode" defaultValue={filters.workMode} aria-label="Work mode" className="rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
+        <select name="workMode" defaultValue={filters.workMode} aria-label="Work mode" className="min-w-0 rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary">
           <option value="">Any work mode</option><option value="onsite">Onsite</option><option value="hybrid">Hybrid</option><option value="remote">Remote</option><option value="home">Work from home</option>
         </select>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3 sm:col-span-2 lg:col-span-5">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="remote" value="1" defaultChecked={filters.remote} className="size-4 accent-[var(--primary)]" />Remote</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="saved" value="1" defaultChecked={filters.saved} className="size-4 accent-[var(--primary)]" />Saved</label>
-        <button className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white md:col-span-7 md:justify-self-start">Apply filters</button>
+        <button className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white">Apply filters</button>
+        </div>
       </form>
 
       {feed.jobs.length === 0 ? (
@@ -65,7 +73,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       ) : (
         <>
           <p className="text-sm text-muted">{feed.total} jobs{filters.q || filters.country || filters.remote || filters.source || filters.sector || filters.workMode || filters.saved ? " match your filters" : ""}</p>
-          <div className="space-y-3">{feed.jobs.map((j) => <JobCard key={j.id} job={{ id: j.id, title: j.title, company: j.company, location: j.location, country: j.country, remote: j.remote, jobType: j.jobType, description: j.description, url: j.url, source: j.source, postedAt: j.postedAt?.toISOString() ?? null, saved: j.saved, sector: j.sector, workMode: j.workMode, deadline: j.deadline, salary: j.salaryMin ? `${j.salaryMin.toLocaleString()}${j.salaryMax ? `–${j.salaryMax.toLocaleString()}` : "+"} ${j.salaryCurrency ?? ""}`.trim() : null, score: feed.profile.hasSignal ? j.rank.score : null, matchedSkills: j.rank.matchedSkills, notes: j.rank.notes }} />)}</div>
+          <div className="space-y-3">{feed.jobs.map((j) => <JobCard key={j.id} job={{ id: j.id, title: j.title, company: j.company, location: j.location, country: j.country, remote: j.remote, jobType: j.jobType, description: j.description, url: j.url, source: j.source, postedAt: j.postedAt?.toISOString() ?? null, saved: j.saved, sector: j.sector, workMode: j.workMode, deadline: j.deadline, salary: j.salaryMin ? `${j.salaryMin.toLocaleString()}${j.salaryMax ? `–${j.salaryMax.toLocaleString()}` : "+"} ${j.salaryCurrency ?? ""}`.trim() : null, score: feed.profile.hasSignal ? j.rank.score : null, matchedSkills: j.rank.matchedSkills, notes: j.rank.notes, ai: matches.get(j.id) ?? null, canMatch: feed.profile.cvStatus === "ready" }} />)}</div>
           {(feed.pages ?? 1) > 1 && (
             <nav className="flex items-center justify-between text-sm" aria-label="Pagination">
               {feed.page! > 1 ? <Link className="text-primary hover:underline" href={`/dashboard/jobs${qs({ page: feed.page! - 1 })}`}>← Previous</Link> : <span />}

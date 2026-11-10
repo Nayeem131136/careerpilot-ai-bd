@@ -6,8 +6,7 @@ import { getAuth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
 import { adminEmails, features } from "@/lib/env";
 
-/** Returns the current session or null. Never throws for "not configured". */
-export async function getSession() {
+async function rawSession() {
   try {
     return await getAuth().api.getSession({ headers: await headers() });
   } catch {
@@ -15,10 +14,27 @@ export async function getSession() {
   }
 }
 
+async function isSuspended(userId: string) {
+  const [row] = await db.select({ banned: schema.user.banned }).from(schema.user).where(eq(schema.user.id, userId));
+  return !row || row.banned;
+}
+
+/** Returns the current session or null (also null for suspended accounts). Never throws for "not configured". */
+export async function getSession() {
+  const s = await rawSession();
+  if (!s) return null;
+  try {
+    return (await isSuspended(s.user.id)) ? null : s;
+  } catch {
+    return null;
+  }
+}
+
 /** Data Access Layer guard: use in every protected server component / route. */
 export async function requireSession() {
-  const s = await getSession();
+  const s = await rawSession();
   if (!s) redirect("/login");
+  if (await isSuspended(s.user.id)) redirect("/login?suspended=1");
   return s;
 }
 

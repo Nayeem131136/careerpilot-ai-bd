@@ -36,6 +36,34 @@
       "when": 1794159507427,
       "tag": "0004_bd_filters",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794259136564,
+      "tag": "0005_job_matches",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794260325219,
+      "tag": "0006_applications",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794262156586,
+      "tag": "0007_roadmaps",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794284292856,
+      "tag": "0008_user_banned",
+      "breakpoints": true
     }
   ]
 }

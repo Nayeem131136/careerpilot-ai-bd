@@ -10,4 +10,16 @@ Done
 
 - Phase 4b (Bangladesh): sector and work-mode filters, add-by-link and pasted circulars, official notice pages/RSS registry with robots.txt checks and an SSRF-safe fetcher.
 
+- Phase 5: AI match explanations per job (score, strengths, gaps, missing skills, tips), cached per user and CV version.
+
+- Phase 6: application tracker and AI draft writer (cover letter / email, English or Bangla). Drafts are never sent.
+
+- Phase 8: skill gaps from AI job matches and an AI learning roadmap with saved progress.
+
+- Phase 7: admin overview, user management (suspend, delete), public job moderation, audit trail.
+
+- Phase 9: hardening (HSTS and CSP headers, error and 404 pages, loading state, robots and sitemap), accurate privacy and terms text with env-driven operator details, complete data export, real dashboard data, mobile overflow fixes.
+
+All planned phases are built.
+
 Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.

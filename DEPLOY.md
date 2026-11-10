@@ -38,3 +38,37 @@ Run `npm install` and `npm run db:migrate` (adds the `cvs` table, migration `000
 5. We do not scrape Bdjobs, Facebook or LinkedIn (their terms forbid it). For Bdjobs, request an official API/partnership by email.
 
 Note: only the admin can add jobs by link or pasted circular; they are published to all users as "Added by CareerPilot". Users cannot add jobs. No new migration.
+
+## Phase 5: AI match explanations
+1. `npm install` then `npm run db:migrate` (migration `0005_job_matches`).
+2. No new environment variables. It uses the AI provider set in the admin panel (task "job_match", which can be routed to its own model).
+3. On the Jobs page each job has a "Why this fits? (AI match)" button. It compares the user's reviewed CV with the posting and shows a score, strengths, gaps, skills to add and tips. Results are saved and reused until the CV changes. The "quick fit" badge is the fast keyword score used for ordering.
+4. It counts against the per-user daily AI limit (Admin > AI).
+
+## Phase 6: application drafts and tracker
+1. `npm install` then `npm run db:migrate` (migration `0006_applications`).
+2. No new environment variables. Drafts use the AI provider from the admin panel (task "draft_writing").
+3. On each job, "Prepare application" opens a workspace: status tracker, AI draft writer (cover letter or short email, English or Bangla, three tones), editable drafts with Copy and "Open in my email app", and private notes. The Applications page lists everything with status filters.
+4. Nothing is ever sent by the site. The user copies the draft and applies personally.
+
+## Phase 8: skills and roadmap
+1. `npm install` then `npm run db:migrate` (migration `0007_roadmaps`).
+2. No new environment variables. The roadmap uses the AI provider from the admin panel (task "roadmap").
+3. The Skills & roadmap page shows the CV skills, the skill gaps found by the user's AI job matches (Phase 5) and an AI roadmap for a chosen target role and weekly hours, with a tickable checklist that saves progress. Resources are named with a search link, never an invented URL.
+
+## Phase 7: admin tools
+1. `npm install` then `npm run db:migrate` (migration `0008_user_banned`: adds `banned` to users).
+2. No new environment variables.
+3. Admin now has: Overview (users, CVs, applications, jobs, AI calls and failures by task, recent admin activity), Users (search, suspend/reactivate, delete account and all its data; admin accounts cannot be changed here), Jobs (search and remove public jobs). Suspending signs the person out everywhere and blocks them until reactivated. Every action is written to the audit log shown on the Overview.
+
+## Phase 9: final checklist before you share the site
+1. `npm install` then `npm run db:migrate` (no new migration in Phase 9; run it anyway, it only applies what is missing).
+2. Vercel > Settings > Environment Variables. Required (already set): `DATABASE_URL` (Secret), `BETTER_AUTH_SECRET` (Secret), `MASTER_ENCRYPTION_SECRET` (Secret), `NEXT_PUBLIC_APP_URL` (Config), `ADMIN_EMAILS` (Config).
+3. Add these Config variables so the Privacy and Terms pages show your real details (otherwise they show a draft notice): `LEGAL_OWNER_NAME`, `LEGAL_COUNTRY`, `LEGAL_CONTACT_EMAIL`. Then redeploy.
+4. Optional Secrets: `JOOBLE_API_KEY`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `CRON_SECRET`.
+5. Admin > AI: pick a provider, load models, save, press Test connection until it says Connected. Set it as Primary.
+6. Admin > Job sources: add official notice pages / RSS feeds and any company boards, press Refresh now.
+7. Check as a normal user: sign up, onboarding, upload CV, review it, Jobs > Refresh jobs, "Why this fits?", "Prepare application", Skills & roadmap.
+8. Have a lawyer review the Privacy Policy and Terms before a wide public launch. The age line (16 and over) and the liability wording are defaults you should confirm.
+
+Security notes: headers include HSTS and a frame/base/form CSP; all state-changing routes check the Origin header and the session; every record is scoped to its owner; AI keys are encrypted and write-only; suspended accounts are blocked everywhere. `npm audit` reports moderate issues only in the `drizzle-kit` developer tool chain (esbuild dev server), which is not used at runtime.

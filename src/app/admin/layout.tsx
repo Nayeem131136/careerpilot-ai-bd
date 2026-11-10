@@ -11,12 +11,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await requireAdmin();
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border bg-bg/80 px-4 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b py-1.5 border-border bg-bg/80 px-4 backdrop-blur-xl">
         <div className="flex items-center gap-4">
           <Logo href="/dashboard" />
           <span className="hidden items-center gap-1.5 rounded-full border border-warn/40 bg-warn/10 px-2.5 py-0.5 text-xs font-medium text-warn sm:inline-flex"><ShieldCheck size={13} />Admin</span>
         </div>
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <Link href="/admin" className="text-muted hover:text-fg">Overview</Link>
+          <Link href="/admin/users" className="text-muted hover:text-fg">Users</Link>
+          <Link href="/admin/jobs" className="text-muted hover:text-fg">Jobs</Link>
           <Link href="/admin/ai" className="text-muted hover:text-fg">AI</Link>
           <Link href="/admin/sources" className="text-muted hover:text-fg">Job sources</Link>
           <Link href="/dashboard" className="text-muted hover:text-fg">Back to app</Link>

@@ -31,6 +31,15 @@ export async function getFeed(userId: string, f: FeedFilters) {
   const where: (SQL | undefined)[] = [or(isNull(schema.jobs.ownerUserId), eq(schema.jobs.ownerUserId, userId))];
   if (hidden.length) where.push(notInArray(schema.jobs.id, hidden));
   if (f.country) where.push(eq(schema.jobs.country, f.country));
+  else {
+    // Default scope: every kind of job in Bangladesh, but only remote jobs from elsewhere.
+    where.push(or(
+      eq(schema.jobs.country, "Bangladesh"),
+      eq(schema.jobs.remote, true),
+      eq(schema.jobs.workMode, "remote"),
+      and(isNull(schema.jobs.country), inArray(schema.jobs.source, ["curated", "notice", "pasted"])),
+    ));
+  }
   if (f.remote) where.push(eq(schema.jobs.remote, true));
   if (f.source) where.push(eq(schema.jobs.source, f.source));
   if (f.sector) where.push(eq(schema.jobs.sector, f.sector));

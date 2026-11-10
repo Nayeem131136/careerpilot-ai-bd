@@ -95,7 +95,7 @@ export async function refreshForUser(userId: string): Promise<SourceResult[]> {
     results.push(...(await inChunks(jobs.slice(0, 4), 2, ({ c, r }) => runSource("adzuna", `${c}|${r.toLowerCase()}`, TTL.query, false, () => fetchAdzuna(env.ADZUNA_APP_ID!, env.ADZUNA_APP_KEY!, c, r)))));
   }
   if (env.JOOBLE_API_KEY) {
-    const locs = (countries.length ? countries : ["Bangladesh"]).slice(0, 3);
+    const locs = ["Bangladesh", ...countries.filter((c) => c !== "Bangladesh")].slice(0, 3);
     const jobs = locs.map((l) => ({ l, r: roles[0] }));
     results.push(...(await inChunks(jobs, 3, ({ l, r }) => runSource("jooble", `${l}|${r.toLowerCase()}`, TTL.query, false, () => fetchJooble(env.JOOBLE_API_KEY!, r, l)))));
   }

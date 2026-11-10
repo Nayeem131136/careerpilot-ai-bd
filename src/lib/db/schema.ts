@@ -10,6 +10,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("user"), // 'user' | 'admin' | 'super_admin' (set server-side only)
+  banned: boolean("banned").notNull().default(false), // suspended by an admin (Phase 7)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -235,3 +236,59 @@ export const pageSources = pgTable("page_sources", {
   lastError: text("last_error"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [uniqueIndex("page_sources_url_uidx").on(t.url)]);
+
+/** AI-written match explanation for one user and one job (Phase 5). Cached; regenerated when the CV changes. */
+export const jobMatches = pgTable("job_matches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  jobId: uuid("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  score: integer("score").notNull(),
+  data: jsonb("data").notNull(), // validated MatchResult (see lib/jobs/match.ts)
+  cvUpdatedAt: timestamp("cv_updated_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("job_matches_uidx").on(t.userId, t.jobId)]);
+
+/* ---------- Applications (Phase 6) ---------- */
+/** One row per job the user is pursuing. Job details are copied in, so the row survives job clean-up. Nothing here is ever sent anywhere. */
+export const applications = pgTable("applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  jobId: uuid("job_id").references(() => jobs.id, { onDelete: "set null" }),
+  jobTitle: text("job_title").notNull(),
+  company: text("company").notNull(),
+  location: text("location"),
+  jobUrl: text("job_url"),
+  jobDescription: text("job_description").notNull().default(""),
+  deadline: text("deadline"),
+  status: text("status").notNull().default("interested"), // interested | drafting | applied | interview | offer | rejected | withdrawn
+  appliedAt: timestamp("applied_at"),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("applications_user_job_uidx").on(t.userId, t.jobId), index("applications_user_idx").on(t.userId, t.updatedAt)]);
+
+export const applicationDrafts = pgTable("application_drafts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id").notNull().references(() => applications.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(), // cover_letter | email
+  language: text("language").notNull(), // en | bn
+  subject: text("subject").notNull().default(""),
+  body: text("body").notNull(),
+  instructions: text("instructions").notNull().default(""),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [index("application_drafts_app_idx").on(t.applicationId)]);
+
+/* ---------- Skills & roadmap (Phase 8) ---------- */
+export const roadmaps = pgTable("roadmaps", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  targetRole: text("target_role").notNull(),
+  hoursPerWeek: integer("hours_per_week").notNull(),
+  data: jsonb("data").notNull(), // validated Roadmap (see lib/roadmap/schema.ts)
+  progress: jsonb("progress").notNull().default({}), // { [itemKey]: true }
+  cvUpdatedAt: timestamp("cv_updated_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("roadmaps_user_uidx").on(t.userId)]);
