@@ -246,3 +246,35 @@ export const jobMatches = pgTable("job_matches", {
   cvUpdatedAt: timestamp("cv_updated_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [uniqueIndex("job_matches_uidx").on(t.userId, t.jobId)]);
+
+/* ---------- Applications (Phase 6) ---------- */
+/** One row per job the user is pursuing. Job details are copied in, so the row survives job clean-up. Nothing here is ever sent anywhere. */
+export const applications = pgTable("applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  jobId: uuid("job_id").references(() => jobs.id, { onDelete: "set null" }),
+  jobTitle: text("job_title").notNull(),
+  company: text("company").notNull(),
+  location: text("location"),
+  jobUrl: text("job_url"),
+  jobDescription: text("job_description").notNull().default(""),
+  deadline: text("deadline"),
+  status: text("status").notNull().default("interested"), // interested | drafting | applied | interview | offer | rejected | withdrawn
+  appliedAt: timestamp("applied_at"),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("applications_user_job_uidx").on(t.userId, t.jobId), index("applications_user_idx").on(t.userId, t.updatedAt)]);
+
+export const applicationDrafts = pgTable("application_drafts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  applicationId: uuid("application_id").notNull().references(() => applications.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(), // cover_letter | email
+  language: text("language").notNull(), // en | bn
+  subject: text("subject").notNull().default(""),
+  body: text("body").notNull(),
+  instructions: text("instructions").notNull().default(""),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [index("application_drafts_app_idx").on(t.applicationId)]);

@@ -43,6 +43,13 @@
       "when": 1794259136564,
       "tag": "0005_job_matches",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794260325219,
+      "tag": "0006_applications",
+      "breakpoints": true
     }
   ]
 }

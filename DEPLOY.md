@@ -44,3 +44,9 @@ Note: only the admin can add jobs by link or pasted circular; they are published
 2. No new environment variables. It uses the AI provider set in the admin panel (task "job_match", which can be routed to its own model).
 3. On the Jobs page each job has a "Why this fits? (AI match)" button. It compares the user's reviewed CV with the posting and shows a score, strengths, gaps, skills to add and tips. Results are saved and reused until the CV changes. The "quick fit" badge is the fast keyword score used for ordering.
 4. It counts against the per-user daily AI limit (Admin > AI).
+
+## Phase 6: application drafts and tracker
+1. `npm install` then `npm run db:migrate` (migration `0006_applications`).
+2. No new environment variables. Drafts use the AI provider from the admin panel (task "draft_writing").
+3. On each job, "Prepare application" opens a workspace: status tracker, AI draft writer (cover letter or short email, English or Bangla, three tones), editable drafts with Copy and "Open in my email app", and private notes. The Applications page lists everything with status filters.
+4. Nothing is ever sent by the site. The user copies the draft and applies personally.

@@ -12,4 +12,6 @@ Done
 
 - Phase 5: AI match explanations per job (score, strengths, gaps, missing skills, tips), cached per user and CV version.
 
+- Phase 6: application tracker and AI draft writer (cover letter / email, English or Bangla). Drafts are never sent.
+
 Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.
