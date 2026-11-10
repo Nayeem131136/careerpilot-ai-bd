@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { BriefcaseBusiness, ChevronsLeft, ChevronsRight, FileText, GraduationCap, KanbanSquare, LayoutDashboard, LogOut, Settings, ShieldCheck } from "lucide-react";
+import { BriefcaseBusiness, ChevronsLeft, ChevronsRight, Award, FileText, GraduationCap, KanbanSquare, LayoutDashboard, LogOut, Settings, ShieldCheck } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -13,6 +13,7 @@ const nav = [
   { href: "/dashboard/cv", label: "My CV", icon: FileText },
   { href: "/dashboard/jobs", label: "Jobs", icon: BriefcaseBusiness },
   { href: "/dashboard/applications", label: "Applications", icon: KanbanSquare },
+  { href: "/dashboard/scholarships", label: "Scholarships", icon: Award },
   { href: "/dashboard/roadmap", label: "Skills & roadmap", icon: GraduationCap },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];

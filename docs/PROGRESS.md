@@ -25,3 +25,8 @@ Done
 All planned phases are built.
 
 Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.
+
+
+## Scholarships
+Done: migration 0009, starter list (review queue), admin add/edit/AI-from-official-page/verify/publish, weekly link re-check cron, user page with filters/save, account export includes saved scholarships.
+Later: CV-based fit score, Google Jobs optional source, ReliefWeb source.

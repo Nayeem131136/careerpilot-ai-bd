@@ -75,3 +75,19 @@ Security notes: headers include HSTS and a frame/base/form CSP; all state-changi
 
 ## Speed tip (important)
 Every page reads the database, so the distance between Vercel and Neon matters. In Neon (Project > Settings) note the region. In Vercel > Settings > Functions set "Function Region" to the closest one (for example Singapore `sin1` if Neon is in AWS Singapore, or Washington `iad1` if Neon is in US East). A mismatch adds hundreds of milliseconds to every click. Redeploy after changing it.
+
+
+## Scholarships (migration 0009)
+
+1. Upload this zip's files to GitHub, then run the migration (Windows CMD):
+   `set "DATABASE_URL=your-neon-url"` then `npm install` then `npm run db:migrate`
+2. Vercel redeploys. No new environment variables. (`CRON_SECRET` is already needed for the daily job refresh; the weekly scholarship check uses the same one.)
+3. Sign in as admin, open **Admin → Scholarships**:
+   - Press **Load starter list**. About 33 well-known programmes go to the **review queue**. Users see nothing yet.
+   - The starter list is written from general knowledge and is NOT verified. For each item: **Open official page**, compare, fix anything wrong in **Check / edit**, press **Mark verified**, then **Publish**. (**Publish all pending** exists, but use it only after checking.)
+   - Deadlines and amounts are left out on purpose; copy them from the official page.
+4. **Add from an official page**: paste an official scholarship link; AI fills the form from that page (needs the AI provider set up). It lands in the review queue; always check every field before publishing. Pages that block robots or need JavaScript cannot be read: use **Add by hand**.
+5. Every Monday 04:00 UTC a cron re-checks published official pages. It never edits anything; it only flags **Page changed** or **Link broken** under *Needs attention*. Details not verified for 90+ days show a warning to users.
+6. Users: **Scholarships** in the sidebar. Filters by level (after HSC, Bachelor's, Master's, PhD), country, funding, university/keyword, "Confirmed for Bangladesh" and Saved only.
+
+Rules we follow: official links only, no scraping of aggregator sites, no copied text, no promises of awards, scam warning on the page.

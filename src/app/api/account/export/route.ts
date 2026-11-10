@@ -19,6 +19,7 @@ export async function GET() {
   const applications = await db.select().from(schema.applications).where(eq(schema.applications.userId, userId));
   const drafts = await db.select().from(schema.applicationDrafts).where(and(eq(schema.applicationDrafts.userId, userId)));
   const [roadmap] = await db.select().from(schema.roadmaps).where(eq(schema.roadmaps.userId, userId));
+  const savedScholarships = await db.select({ name: schema.scholarships.name, officialUrl: schema.scholarships.officialUrl, savedAt: schema.scholarshipSaves.createdAt }).from(schema.scholarshipSaves).innerJoin(schema.scholarships, eq(schema.scholarships.id, schema.scholarshipSaves.scholarshipId)).where(eq(schema.scholarshipSaves.userId, userId));
   const body = {
     exportedAt: new Date().toISOString(),
     account: { id: s.user.id, name: s.user.name, email: s.user.email, createdAt: s.user.createdAt },
@@ -30,6 +31,7 @@ export async function GET() {
     aiMatches: matches,
     applications,
     applicationDrafts: drafts,
+    savedScholarships,
     roadmap: roadmap ? { targetRole: roadmap.targetRole, hoursPerWeek: roadmap.hoursPerWeek, plan: roadmap.data, progress: roadmap.progress } : null,
   };
   return new Response(JSON.stringify(body, null, 2), {

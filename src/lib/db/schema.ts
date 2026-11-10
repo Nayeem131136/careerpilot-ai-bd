@@ -292,3 +292,39 @@ export const roadmaps = pgTable("roadmaps", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => [uniqueIndex("roadmaps_user_uidx").on(t.userId)]);
+
+
+/* ---------- Scholarships ---------- */
+export const scholarships = pgTable("scholarships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  provider: text("provider").notNull(), // who funds/runs it (government, university, foundation)
+  hostCountry: text("host_country").notNull(), // where you study ("Multiple countries" is allowed)
+  universities: text("universities").array().notNull().default([]), // named universities, or empty
+  levels: text("levels").array().notNull().default([]), // 'hsc' | 'bachelor' | 'master' | 'phd'
+  fields: text("fields").array().notNull().default([]), // empty = all fields
+  funding: text("funding").notNull().default("full"), // 'full' | 'partial'
+  coverage: text("coverage").notNull().default(""),
+  eligibility: text("eligibility").notNull().default(""),
+  bangladeshEligible: text("bangladesh_eligible").notNull().default("check"), // 'yes' | 'check'
+  language: text("language").notNull().default(""),
+  howToApply: text("how_to_apply").notNull().default(""),
+  deadlineText: text("deadline_text").notNull().default(""),
+  deadlineDate: timestamp("deadline_date"),
+  officialUrl: text("official_url").notNull(),
+  status: text("status").notNull().default("pending"), // 'pending' | 'published' | 'archived'
+  origin: text("origin").notNull().default("manual"), // 'seed' | 'manual' | 'ai'
+  lastVerifiedAt: timestamp("last_verified_at"), // an admin confirmed the details against the official page
+  checkHash: text("check_hash"), // fingerprint of the official page when last verified
+  checkStatus: text("check_status"), // 'ok' | 'changed' | 'broken'
+  checkedAt: timestamp("checked_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("scholarships_url_uidx").on(t.officialUrl), index("scholarships_status_idx").on(t.status)]);
+
+export const scholarshipSaves = pgTable("scholarship_saves", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  scholarshipId: uuid("scholarship_id").notNull().references(() => scholarships.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("scholarship_saves_uidx").on(t.userId, t.scholarshipId)]);

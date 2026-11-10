@@ -64,6 +64,13 @@
       "when": 1794284292856,
       "tag": "0008_user_banned",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794345065948,
+      "tag": "0009_scholarships",
+      "breakpoints": true
     }
   ]
 }
