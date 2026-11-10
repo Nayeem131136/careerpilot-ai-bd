@@ -21,7 +21,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <div className="space-y-6">
       <div><Link href="/admin/scholarships" className="text-sm text-primary hover:underline">← Scholarships</Link><h1 className="mt-1 text-2xl font-extrabold">Check and edit</h1>
-        <p className="mt-1 text-sm text-muted">Status: <b>{r.status}</b>{r.origin === "ai" ? " · filled by AI, check every field" : r.origin === "seed" ? " · starter list, check every field" : ""}. <a href={r.officialUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Open the official page</a> and compare.</p></div>
+        <p className="mt-1 text-sm text-muted">Status: <b>{r.status}</b>{r.origin === "ai" ? " · filled by AI, check every field" : ""}. <a href={r.officialUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Open the official page</a> and compare.</p></div>
       <ScholarshipForm id={r.id} initial={initial} />
     </div>
   );

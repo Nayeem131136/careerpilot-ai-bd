@@ -5,7 +5,6 @@ import { z } from "zod";
 import { db, schema } from "@/lib/db";
 import { recheckScholarships, verifyNow } from "@/lib/scholarships/check";
 import { extractScholarship } from "@/lib/scholarships/extract";
-import { SEED } from "@/lib/scholarships/seed";
 import { scholarshipInput, type ScholarshipInput } from "@/lib/scholarships/types";
 import { requireAdminAction } from "@/lib/session";
 
@@ -16,16 +15,6 @@ const fail = (e: unknown): R => ({ ok: false, message: e instanceof Error ? e.me
 const audit = (actorId: string, action: string, target: string) => db.insert(schema.auditLogs).values({ actorId, action, target });
 const dateOf = (s: string) => (s ? new Date(`${s}T00:00:00Z`) : null);
 const row = (d: ScholarshipInput) => ({ ...d, deadlineDate: dateOf(d.deadlineDate ?? ""), updatedAt: new Date() });
-
-/** Loads the starter list as "pending" (never shown to users until an admin publishes). */
-export async function loadStarterList(): Promise<R> {
-  try {
-    const admin = await requireAdminAction();
-    const res = await db.insert(schema.scholarships).values(SEED.map((s) => ({ ...row(s), status: "pending", origin: "seed" }))).onConflictDoNothing().returning({ id: schema.scholarships.id });
-    await audit(admin.user.id, "scholarships.seed", String(res.length));
-    return done(res.length ? `${res.length} programmes added to the review queue.` : "The starter list is already loaded.");
-  } catch (e) { return fail(e); }
-}
 
 export async function saveScholarship(id: string | null, input: unknown): Promise<R> {
   try {

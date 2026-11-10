@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, Input } from "@/components/ui/primitives";
-import { addFromUrl, loadStarterList, publishAllPending, runRecheck } from "@/app/admin/scholarships/actions";
+import { addFromUrl, publishAllPending, runRecheck } from "@/app/admin/scholarships/actions";
 
 export function ScholarshipTools({ pending }: { pending: number }) {
   const router = useRouter();
@@ -16,7 +16,6 @@ export function ScholarshipTools({ pending }: { pending: number }) {
   return (
     <Card className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" disabled={busy} onClick={() => go(loadStarterList)}>Load starter list</Button>
         <Button variant="secondary" disabled={busy} onClick={() => go(runRecheck)}>Re-check links now</Button>
         <Button variant="secondary" disabled={busy || pending === 0} onClick={() => { if (confirm(`Publish all ${pending} pending programmes? Only do this after you checked them.`)) go(publishAllPending); }}>Publish all pending ({pending})</Button>
       </div>

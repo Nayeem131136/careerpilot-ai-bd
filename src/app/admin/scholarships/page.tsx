@@ -24,7 +24,7 @@ function Item({ r, stale }: { r: Row; stale: boolean }) {
         {r.status === "published" && r.checkStatus === "changed" && <Badge tone="warn">Page changed</Badge>}
         {r.checkStatus === "broken" && <Badge tone="danger">Link broken</Badge>}
         {stale && <Badge tone="warn">Not verified in {STALE_DAYS}+ days</Badge>}
-        {r.origin !== "manual" && <Badge>{r.origin === "ai" ? "AI-filled" : "Starter list"}</Badge>}
+        {r.origin === "ai" && <Badge>AI-filled</Badge>}
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
         <span className="text-xs text-muted">{r.lastVerifiedAt ? `Verified ${r.lastVerifiedAt.toLocaleDateString("en-GB")}` : "Never verified"}{r.checkedAt ? ` · link checked ${r.checkedAt.toLocaleDateString("en-GB")}` : ""}</span>
@@ -55,10 +55,9 @@ export default async function Page() {
           <p className="mt-1 text-sm text-muted">{published.length} published · {pending.length} to review · {attention.length} need attention · {staleCount} not verified in {STALE_DAYS}+ days. Users only see published ones.</p></div>
         <Link href="/admin/scholarships/new" className="rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:border-primary/60">Add by hand</Link>
       </div>
-      <Card className="border-warn/40 bg-warn/5 p-4 text-sm text-muted">The starter list was written from general knowledge and is <b className="text-fg">not verified</b>. Open each official page, compare, fix anything wrong, press <b className="text-fg">Mark verified</b>, then publish. Amounts and deadlines must come from the official page.</Card>
       <ScholarshipTools pending={pending.length} />
       {attention.length > 0 && <section className="space-y-3"><h2 className="font-display text-lg font-bold">Needs attention</h2>{attention.map((r) => <Item key={r.id} r={r} stale={isStale(r)} />)}</section>}
-      <section className="space-y-3"><h2 className="font-display text-lg font-bold">Review queue ({pending.length})</h2>{pending.map((r) => <Item key={r.id} r={r} stale={false} />)}{pending.length === 0 && <p className="text-sm text-muted">Nothing waiting. Load the starter list or add one from an official page.</p>}</section>
+      <section className="space-y-3"><h2 className="font-display text-lg font-bold">Review queue ({pending.length})</h2>{pending.map((r) => <Item key={r.id} r={r} stale={false} />)}{pending.length === 0 && <p className="text-sm text-muted">Nothing waiting. Add one from an official page or by hand.</p>}</section>
       <section className="space-y-3"><h2 className="font-display text-lg font-bold">Published ({published.length})</h2>{published.filter((r) => !attention.includes(r)).map((r) => <Item key={r.id} r={r} stale={isStale(r)} />)}</section>
       {archived.length > 0 && <section className="space-y-3"><h2 className="font-display text-lg font-bold">Archived ({archived.length})</h2>{archived.map((r) => <Item key={r.id} r={r} stale={false} />)}</section>}
     </div>
