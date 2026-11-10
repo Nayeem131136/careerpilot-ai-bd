@@ -17,6 +17,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <span className="hidden items-center gap-1.5 rounded-full border border-warn/40 bg-warn/10 px-2.5 py-0.5 text-xs font-medium text-warn sm:inline-flex"><ShieldCheck size={13} />Admin</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
+          <Link href="/admin" className="text-muted hover:text-fg">Overview</Link>
+          <Link href="/admin/users" className="text-muted hover:text-fg">Users</Link>
+          <Link href="/admin/jobs" className="text-muted hover:text-fg">Jobs</Link>
           <Link href="/admin/ai" className="text-muted hover:text-fg">AI</Link>
           <Link href="/admin/sources" className="text-muted hover:text-fg">Job sources</Link>
           <Link href="/dashboard" className="text-muted hover:text-fg">Back to app</Link>

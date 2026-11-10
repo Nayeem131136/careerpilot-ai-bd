@@ -55,3 +55,8 @@ Note: only the admin can add jobs by link or pasted circular; they are published
 1. `npm install` then `npm run db:migrate` (migration `0007_roadmaps`).
 2. No new environment variables. The roadmap uses the AI provider from the admin panel (task "roadmap").
 3. The Skills & roadmap page shows the CV skills, the skill gaps found by the user's AI job matches (Phase 5) and an AI roadmap for a chosen target role and weekly hours, with a tickable checklist that saves progress. Resources are named with a search link, never an invented URL.
+
+## Phase 7: admin tools
+1. `npm install` then `npm run db:migrate` (migration `0008_user_banned`: adds `banned` to users).
+2. No new environment variables.
+3. Admin now has: Overview (users, CVs, applications, jobs, AI calls and failures by task, recent admin activity), Users (search, suspend/reactivate, delete account and all its data; admin accounts cannot be changed here), Jobs (search and remove public jobs). Suspending signs the person out everywhere and blocks them until reactivated. Every action is written to the audit log shown on the Overview.

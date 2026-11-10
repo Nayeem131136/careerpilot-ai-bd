@@ -10,6 +10,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("user"), // 'user' | 'admin' | 'super_admin' (set server-side only)
+  banned: boolean("banned").notNull().default(false), // suspended by an admin (Phase 7)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

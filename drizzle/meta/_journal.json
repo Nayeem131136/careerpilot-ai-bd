@@ -57,6 +57,13 @@
       "when": 1794262156586,
       "tag": "0007_roadmaps",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794284292856,
+      "tag": "0008_user_banned",
+      "breakpoints": true
     }
   ]
 }

@@ -16,4 +16,6 @@ Done
 
 - Phase 8: skill gaps from AI job matches and an AI learning roadmap with saved progress.
 
+- Phase 7: admin overview, user management (suspend, delete), public job moderation, audit trail.
+
 Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.
