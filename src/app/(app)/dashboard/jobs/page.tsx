@@ -93,7 +93,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           <li>Adzuna (UK, US, Australia, Canada, Germany, etc.): <span className="text-muted">{keyed.adzuna ? "connected" : "not connected by the site admin yet"}</span></li>
           <li>Jooble (many countries, including Bangladesh): <span className="text-muted">{keyed.jooble ? "connected" : "not connected by the site admin yet"}</span></li>
         </ul>
-        <p className="mt-3 text-sm text-muted">Bangladesh jobs currently loaded: <span className="font-medium text-fg">{cov.bangladesh}</span>. Many Bangladeshi jobs are only on local sites or Facebook, so use “Add a job circular” to paste them in, and we will read them in Bengali or English.</p>
+        <p className="mt-3 text-sm text-muted">Bangladesh jobs currently loaded: <span className="font-medium text-fg">{cov.bangladesh}</span>. Many Bangladeshi jobs are only on local sites or Facebook, so the site admin also adds good circulars by hand.</p>
       </Card>
     </div>
   );

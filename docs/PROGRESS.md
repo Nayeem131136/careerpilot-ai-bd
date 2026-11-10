@@ -20,6 +20,8 @@ Done
 
 - Phase 9: hardening (HSTS and CSP headers, error and 404 pages, loading state, robots and sitemap), accurate privacy and terms text with env-driven operator details, complete data export, real dashboard data, mobile overflow fixes.
 
+- Speed pass: auth/admin lookups cached per request, Better Auth cookie cache (5 min), lighter job-feed query (full text only for the 20 shown), parallel dashboard queries.
+
 All planned phases are built.
 
 Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.

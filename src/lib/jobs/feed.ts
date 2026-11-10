@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, ilike, inArray, isNull, notInArray, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, inArray, isNull, notInArray, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import type { CvAnalysis } from "@/lib/cv/schema";
 import { rankJob, type RankProfile, type Ranked } from "./rank";
@@ -9,9 +9,11 @@ export type FeedJob = typeof schema.jobs.$inferSelect & { rank: Ranked; saved: b
 const PAGE = 20;
 
 export async function loadRankProfile(userId: string): Promise<RankProfile & { cvStatus: "none" | "ready" }> {
-  const [cv] = await db.select().from(schema.cvs).where(eq(schema.cvs.userId, userId));
-  const [prefs] = await db.select().from(schema.careerPreferences).where(eq(schema.careerPreferences.userId, userId));
-  const [prof] = await db.select().from(schema.profiles).where(eq(schema.profiles.userId, userId));
+  const [[cv], [prefs], [prof]] = await Promise.all([
+    db.select().from(schema.cvs).where(eq(schema.cvs.userId, userId)),
+    db.select().from(schema.careerPreferences).where(eq(schema.careerPreferences.userId, userId)),
+    db.select().from(schema.profiles).where(eq(schema.profiles.userId, userId)),
+  ]);
   const parsed = cv?.status === "analyzed" ? (cv.parsed as CvAnalysis | null) : null;
   const roles = [...(prefs?.jobTitles ?? []), ...(parsed?.suggestedRoles.map((r) => r.title) ?? [])];
   const skills = parsed?.skills ?? [];
@@ -23,8 +25,10 @@ export async function loadRankProfile(userId: string): Promise<RankProfile & { c
 }
 
 export async function getFeed(userId: string, f: FeedFilters) {
-  const profile = await loadRankProfile(userId);
-  const states = await db.select({ jobId: schema.userJobState.jobId, state: schema.userJobState.state }).from(schema.userJobState).where(eq(schema.userJobState.userId, userId));
+  const [profile, states] = await Promise.all([
+    loadRankProfile(userId),
+    db.select({ jobId: schema.userJobState.jobId, state: schema.userJobState.state }).from(schema.userJobState).where(eq(schema.userJobState.userId, userId)),
+  ]);
   const hidden = states.filter((s) => s.state === "hidden").map((s) => s.jobId);
   const savedIds = new Set(states.filter((s) => s.state === "saved").map((s) => s.jobId));
 
@@ -47,7 +51,10 @@ export async function getFeed(userId: string, f: FeedFilters) {
   if (f.q) { const like = `%${f.q.replace(/[%_\\]/g, "\\$&")}%`; where.push(or(ilike(schema.jobs.title, like), ilike(schema.jobs.company, like))); }
   if (f.saved) { if (savedIds.size === 0) return { jobs: [], total: 0, pages: 1, profile }; where.push(inArray(schema.jobs.id, [...savedIds])); }
 
-  const rows = await db.select().from(schema.jobs).where(and(...where))
+  // Ranking only needs the start of each description; the full text is loaded below for the jobs actually shown.
+  const { description: _full, ...cols } = getTableColumns(schema.jobs);
+  void _full;
+  const rows = await db.select({ ...cols, description: sql<string>`left(${schema.jobs.description}, 1500)` }).from(schema.jobs).where(and(...where))
     .orderBy(desc(sql`coalesce(${schema.jobs.postedAt}, ${schema.jobs.fetchedAt})`)).limit(800);
 
   const seen = new Set<string>();
@@ -60,5 +67,11 @@ export async function getFeed(userId: string, f: FeedFilters) {
   ranked.sort((a, b) => b.rank.score - a.rank.score || (b.postedAt?.getTime() ?? 0) - (a.postedAt?.getTime() ?? 0));
   const pages = Math.max(1, Math.ceil(ranked.length / PAGE));
   const page = Math.min(Math.max(1, f.page), pages);
-  return { jobs: ranked.slice((page - 1) * PAGE, page * PAGE), total: ranked.length, pages, page, profile };
+  const shown = ranked.slice((page - 1) * PAGE, page * PAGE);
+  if (shown.length) {
+    const full = await db.select({ id: schema.jobs.id, description: schema.jobs.description }).from(schema.jobs).where(inArray(schema.jobs.id, shown.map((j) => j.id)));
+    const byId = new Map(full.map((r) => [r.id, r.description]));
+    for (const j of shown) j.description = byId.get(j.id) ?? j.description;
+  }
+  return { jobs: shown, total: ranked.length, pages, page, profile };
 }

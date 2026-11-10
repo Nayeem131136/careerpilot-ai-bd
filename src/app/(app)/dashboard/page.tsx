@@ -12,18 +12,20 @@ export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const session = await requireSession();
-  const [profile] = await db.select().from(schema.profiles).where(eq(schema.profiles.userId, session.user.id));
-  const [cv] = await db.select({ status: schema.cvs.status, reviewedAt: schema.cvs.reviewedAt }).from(schema.cvs).where(eq(schema.cvs.userId, session.user.id));
+  const uid = session.user.id;
+  const [[profile], [cv], ai, [{ n: matchCount }], [{ n: appCount }], [roadmap], top, appRows] = await Promise.all([
+    db.select().from(schema.profiles).where(eq(schema.profiles.userId, uid)),
+    db.select({ status: schema.cvs.status, reviewedAt: schema.cvs.reviewedAt }).from(schema.cvs).where(eq(schema.cvs.userId, uid)),
+    getAiStatus(),
+    db.select({ n: count() }).from(schema.jobMatches).where(eq(schema.jobMatches.userId, uid)),
+    db.select({ n: count() }).from(schema.applications).where(eq(schema.applications.userId, uid)),
+    db.select({ id: schema.roadmaps.id }).from(schema.roadmaps).where(eq(schema.roadmaps.userId, uid)),
+    db.select({ score: schema.jobMatches.score, title: schema.jobs.title, company: schema.jobs.company }).from(schema.jobMatches)
+      .innerJoin(schema.jobs, eq(schema.jobs.id, schema.jobMatches.jobId)).where(eq(schema.jobMatches.userId, uid)).orderBy(desc(schema.jobMatches.score)).limit(3),
+    db.select({ status: schema.applications.status, n: count() }).from(schema.applications).where(eq(schema.applications.userId, uid)).groupBy(schema.applications.status),
+  ]);
   const fields = [profile?.headline, profile?.country, profile?.city, profile?.experienceLevel, cv?.status === "analyzed" ? "cv" : null];
   const completeness = Math.round((fields.filter(Boolean).length / fields.length) * 100);
-  const ai = await getAiStatus();
-  const uid = session.user.id;
-  const [{ n: matchCount }] = await db.select({ n: count() }).from(schema.jobMatches).where(eq(schema.jobMatches.userId, uid));
-  const [{ n: appCount }] = await db.select({ n: count() }).from(schema.applications).where(eq(schema.applications.userId, uid));
-  const [roadmap] = await db.select({ id: schema.roadmaps.id }).from(schema.roadmaps).where(eq(schema.roadmaps.userId, uid));
-  const top = await db.select({ score: schema.jobMatches.score, title: schema.jobs.title, company: schema.jobs.company }).from(schema.jobMatches)
-    .innerJoin(schema.jobs, eq(schema.jobs.id, schema.jobMatches.jobId)).where(eq(schema.jobMatches.userId, uid)).orderBy(desc(schema.jobMatches.score)).limit(3);
-  const appRows = await db.select({ status: schema.applications.status, n: count() }).from(schema.applications).where(eq(schema.applications.userId, uid)).groupBy(schema.applications.status);
   const by = new Map(appRows.map((r) => [r.status, r.n]));
 
   const steps = [

@@ -55,7 +55,7 @@ function build() {
       additionalFields: { role: { type: "string", defaultValue: "user", input: false } },
       deleteUser: { enabled: true },
     },
-    session: { expiresIn: 60 * 60 * 24 * 14, updateAge: 60 * 60 * 24 },
+    session: { expiresIn: 60 * 60 * 24 * 14, updateAge: 60 * 60 * 24, cookieCache: { enabled: true, maxAge: 60 * 5 } },
     plugins: [nextCookies()],
   });
 }

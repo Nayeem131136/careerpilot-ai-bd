@@ -72,3 +72,6 @@ Note: only the admin can add jobs by link or pasted circular; they are published
 8. Have a lawyer review the Privacy Policy and Terms before a wide public launch. The age line (16 and over) and the liability wording are defaults you should confirm.
 
 Security notes: headers include HSTS and a frame/base/form CSP; all state-changing routes check the Origin header and the session; every record is scoped to its owner; AI keys are encrypted and write-only; suspended accounts are blocked everywhere. `npm audit` reports moderate issues only in the `drizzle-kit` developer tool chain (esbuild dev server), which is not used at runtime.
+
+## Speed tip (important)
+Every page reads the database, so the distance between Vercel and Neon matters. In Neon (Project > Settings) note the region. In Vercel > Settings > Functions set "Function Region" to the closest one (for example Singapore `sin1` if Neon is in AWS Singapore, or Washington `iad1` if Neon is in US East). A mismatch adds hundreds of milliseconds to every click. Redeploy after changing it.
