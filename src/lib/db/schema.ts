@@ -278,3 +278,16 @@ export const applicationDrafts = pgTable("application_drafts", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => [index("application_drafts_app_idx").on(t.applicationId)]);
+
+/* ---------- Skills & roadmap (Phase 8) ---------- */
+export const roadmaps = pgTable("roadmaps", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  targetRole: text("target_role").notNull(),
+  hoursPerWeek: integer("hours_per_week").notNull(),
+  data: jsonb("data").notNull(), // validated Roadmap (see lib/roadmap/schema.ts)
+  progress: jsonb("progress").notNull().default({}), // { [itemKey]: true }
+  cvUpdatedAt: timestamp("cv_updated_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("roadmaps_user_uidx").on(t.userId)]);

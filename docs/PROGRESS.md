@@ -14,4 +14,6 @@ Done
 
 - Phase 6: application tracker and AI draft writer (cover letter / email, English or Bangla). Drafts are never sent.
 
+- Phase 8: skill gaps from AI job matches and an AI learning roadmap with saved progress.
+
 Next: Phase 5 matching; Phase 6 drafts + tracker; Phase 7 admin tools/moderation; Phase 8 roadmap; Phase 9 hardening.

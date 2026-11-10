@@ -50,3 +50,8 @@ Note: only the admin can add jobs by link or pasted circular; they are published
 2. No new environment variables. Drafts use the AI provider from the admin panel (task "draft_writing").
 3. On each job, "Prepare application" opens a workspace: status tracker, AI draft writer (cover letter or short email, English or Bangla, three tones), editable drafts with Copy and "Open in my email app", and private notes. The Applications page lists everything with status filters.
 4. Nothing is ever sent by the site. The user copies the draft and applies personally.
+
+## Phase 8: skills and roadmap
+1. `npm install` then `npm run db:migrate` (migration `0007_roadmaps`).
+2. No new environment variables. The roadmap uses the AI provider from the admin panel (task "roadmap").
+3. The Skills & roadmap page shows the CV skills, the skill gaps found by the user's AI job matches (Phase 5) and an AI roadmap for a chosen target role and weekly hours, with a tickable checklist that saves progress. Resources are named with a search link, never an invented URL.
