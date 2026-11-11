@@ -10,6 +10,18 @@ export type Level = (typeof LEVELS)[number]["key"];
 export const LEVEL_KEYS = LEVELS.map((l) => l.key) as [Level, ...Level[]];
 export const levelLabel = (k: string) => LEVELS.find((l) => l.key === k)?.label ?? k;
 
+/** Cleans a pasted link: removes tracking parameters (e.g. ?utm_source=chatgpt.com), text-fragment anchors and trailing punctuation. */
+export function cleanUrl(raw: string): string {
+  let t = raw.trim().replace(/^<|>$/g, "").replace(/[)\].,;:!?'"]+$/, "");
+  try {
+    const u = new URL(t);
+    for (const k of [...u.searchParams.keys()]) if (/^(utm_|fbclid|gclid|ref$|ref_|source$|srsltid)/i.test(k)) u.searchParams.delete(k);
+    u.hash = u.hash.startsWith("#:~:") ? "" : u.hash;
+    t = u.toString();
+  } catch { /* leave as is; validation will complain */ }
+  return t.replace(/[?&]+$/, "");
+}
+
 const list = (max: number, len = 120) => z.array(z.string().trim().min(1).max(len)).max(max);
 
 export const scholarshipInput = z.object({
@@ -27,7 +39,7 @@ export const scholarshipInput = z.object({
   howToApply: z.string().trim().max(900),
   deadlineText: z.string().trim().max(200),
   deadlineDate: z.string().trim().max(10).regex(/^(\d{4}-\d{2}-\d{2})?$/, "Use a date like 2026-12-31.").optional().default(""),
-  officialUrl: z.string().trim().url().max(500).refine((u) => u.startsWith("https://"), "The official link must start with https://"),
+  officialUrl: z.string().trim().transform(cleanUrl).pipe(z.string().url().max(500).refine((u) => u.startsWith("https://"), "The official link must start with https://")),
 });
 export type ScholarshipInput = z.infer<typeof scholarshipInput>;
 

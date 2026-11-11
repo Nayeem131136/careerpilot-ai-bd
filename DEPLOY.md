@@ -80,5 +80,5 @@ Every page reads the database, so the distance between Vercel and Neon matters. 
 ## Scholarships (migration 0009)
 
 1. Run the migration (Windows CMD): `set "DATABASE_URL=your-neon-url"` then `npm run db:migrate`.
-2. Admin → Scholarships: **Add from an official page** (paste an official link; AI fills the form) or **Add by hand**. Everything goes to the review queue; check each field against the official page, press **Mark verified**, then **Publish**.
+2. Admin → Scholarships → **Add by hand** has a box at the top: paste one scholarship's details (lines like `Name: …`, `Funding: …`, `Official link: …`) and press **Fill form**; it fills every field and cleans the link. Or use **Add from an official page** (paste an official link; AI fills the form) or **Add by hand**. Everything goes to the review queue; check each field against the official page, press **Mark verified**, then **Publish**.
 3. Every Monday a cron re-checks published official pages and flags **Page changed** / **Link broken**. It never edits content.

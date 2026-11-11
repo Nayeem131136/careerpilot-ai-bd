@@ -31,7 +31,7 @@ export async function saveScholarship(id: string | null, input: unknown): Promis
     await audit(admin.user.id, "scholarships.add", r.id);
     return done("Added to the review queue.", r.id);
   } catch (e) {
-    return { ok: false, message: e instanceof Error && /unique|duplicate/i.test(e.message) ? "A scholarship with this official link already exists." : "Could not save." };
+    return { ok: false, message: /unique|duplicate|23505/i.test(`${e instanceof Error ? e.message : ""} ${(e as { cause?: { message?: string; code?: string } })?.cause?.message ?? ""} ${(e as { code?: string })?.code ?? ""} ${(e as { cause?: { code?: string } })?.cause?.code ?? ""}`) ? "A scholarship with this official link already exists." : "Could not save." };
   }
 }
 

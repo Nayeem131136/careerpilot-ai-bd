@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, Field, Input } from "@/components/ui/primitives";
 import { saveScholarship } from "@/app/admin/scholarships/actions";
 import { LEVELS, toList } from "@/lib/scholarships/types";
+import { parseScholarshipText } from "@/lib/scholarships/parse";
 
 export type FormValues = {
   name: string; provider: string; hostCountry: string; universities: string; levels: string[]; fields: string; funding: "full" | "partial";
@@ -19,6 +20,15 @@ export function ScholarshipForm({ id, initial }: { id: string | null; initial: F
   const [v, setV] = useState(initial);
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [paste, setPaste] = useState("");
+  const [fillMsg, setFillMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  function fill() {
+    const r = parseScholarshipText(paste);
+    if (!r) { setFillMsg({ ok: false, text: "Could not find fields in that text. It should have lines like “Name: …”, “Country of study: …”, “Official link: …”. You can also fill the form by hand." }); return; }
+    const d = r.data;
+    setV((p) => ({ ...p, ...d, universities: d.universities ?? p.universities, fields: d.fields ?? p.fields, levels: d.levels?.length ? d.levels : p.levels } as FormValues));
+    setFillMsg({ ok: true, text: `Filled ${r.filled} fields. Check every one against the official page before saving.` });
+  }
   const set = <K extends keyof FormValues>(k: K, val: FormValues[K]) => setV((p) => ({ ...p, [k]: val }));
   const text = (k: keyof FormValues, label: string, ph?: string) => (
     <Field label={label} htmlFor={`f-${k}`}><Input id={`f-${k}`} value={v[k] as string} onChange={(e) => set(k, e.target.value as never)} placeholder={ph} /></Field>
@@ -35,6 +45,18 @@ export function ScholarshipForm({ id, initial }: { id: string | null; initial: F
     });
   }
   return (
+    <div className="space-y-6">
+    {id === null && (
+      <Card className="space-y-3">
+        <h2 className="font-display text-lg font-bold">Paste details to fill the form</h2>
+        <p className="text-sm text-muted">Paste one scholarship&apos;s details (for example the answer from ChatGPT, with lines like “Name: …”, “Funding: …”, “Official link: …”). Then press <b>Fill form</b>. Tracking parts of the link (like ?utm_source=chatgpt.com) are removed automatically.</p>
+        <textarea aria-label="Pasted scholarship details" rows={6} value={paste} onChange={(e) => setPaste(e.target.value)} className={ta} placeholder={"Name: …\nProvider: …\nCountry of study: …\nOfficial link: https://…"} />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="secondary" onClick={fill} disabled={!paste.trim()}>Fill form</Button>
+          {fillMsg && <p role="status" className={`text-sm ${fillMsg.ok ? "text-success" : "text-danger"}`}>{fillMsg.text}</p>}
+        </div>
+      </Card>
+    )}
     <Card className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         {text("name", "Scholarship name")}{text("provider", "Provider (who runs / funds it)")}
@@ -69,5 +91,6 @@ export function ScholarshipForm({ id, initial }: { id: string | null; initial: F
         {msg && <p role="status" className={`text-sm ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>}
       </div>
     </Card>
+    </div>
   );
 }

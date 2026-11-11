@@ -44,8 +44,11 @@ function once(u: URL, ip: { address: string; family: number }, accept: string): 
       // Pin the connection to the IP we validated, so DNS cannot change between the check and the request.
       lookup: (_h, _o, cb) => cb(null, ip.address, ip.family),
     }, (res) => {
-      const chunks: Buffer[] = []; let size = 0;
-      res.on("data", (c: Buffer) => { size += c.length; if (size > MAX_BYTES) { req.destroy(); reject(new Error("page too large")); } else chunks.push(c); });
+      const chunks: Buffer[] = []; let size = 0; let finished = false;
+      const finish = () => { if (finished) return; finished = true; resolve({ status: res.statusCode ?? 0, location: res.headers.location, type: String(res.headers["content-type"] ?? ""), body: Buffer.concat(chunks).toString("utf8") }); };
+      // Very large pages are cut off at the limit (we only read text), instead of failing.
+      res.on("data", (c: Buffer) => { size += c.length; if (size > MAX_BYTES) { chunks.push(c.subarray(0, Math.max(0, c.length - (size - MAX_BYTES)))); res.destroy(); finish(); } else chunks.push(c); });
+      res.on("close", finish);
       res.on("end", () => resolve({ status: res.statusCode ?? 0, location: res.headers.location, type: String(res.headers["content-type"] ?? ""), body: Buffer.concat(chunks).toString("utf8") }));
     });
     req.on("timeout", () => req.destroy(new Error("timed out")));
