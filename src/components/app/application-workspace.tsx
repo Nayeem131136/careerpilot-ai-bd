@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/primitives";
+import { parseDeadline, isoDay } from "@/lib/deadlines/parse";
 import { KINDS, STATUSES, STATUS_LABEL, TONES, type AppStatus } from "@/lib/applications/types";
 
 type Draft = { id: string; kind: string; language: string; subject: string; body: string; createdAt: string };
@@ -60,6 +61,8 @@ export function ApplicationWorkspace({ app, drafts: initial, canDraft }: { app: 
   const router = useRouter();
   const [status, setStatus] = useState(app.status);
   const [notes, setNotes] = useState(app.notes);
+  const [dl, setDl] = useState(() => { const d = parseDeadline(app.deadline); return d ? isoDay(d) : ""; });
+  const [dlMsg, setDlMsg] = useState<string | null>(null);
   const [notesMsg, setNotesMsg] = useState<string | null>(null);
   const [drafts, setDrafts] = useState(initial);
   const [kind, setKind] = useState<(typeof KINDS)[number]>("cover_letter");
@@ -75,6 +78,11 @@ export function ApplicationWorkspace({ app, drafts: initial, canDraft }: { app: 
     const r = await call("PATCH", `/api/applications/${app.id}`, { status: next });
     if (!r.ok) { setStatus(prev); return; }
     router.refresh();
+  }
+  async function saveDeadline(next: string) {
+    setDl(next); setDlMsg(null);
+    const r = await call("PATCH", `/api/applications/${app.id}`, { deadline: next });
+    setDlMsg(r.ok ? (next ? "Deadline saved. It shows on your Deadlines page." : "Deadline cleared.") : r.message ?? "Could not save.");
   }
   async function saveNotes() {
     setNotesMsg(null);
@@ -115,6 +123,12 @@ export function ApplicationWorkspace({ app, drafts: initial, canDraft }: { app: 
           </select>
           {status !== "applied" && status !== "interview" && status !== "offer" && <button type="button" onClick={() => changeStatus("applied")} className="text-sm text-primary hover:underline">I have applied</button>}
           {app.appliedAt && <span className="text-xs text-muted">First marked applied on {new Date(app.appliedAt).toLocaleDateString("en-GB")}</span>}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <label htmlFor="deadline" className="text-sm font-medium">Your deadline</label>
+          <input id="deadline" type="date" value={dl} onChange={(e) => saveDeadline(e.target.value)} className="rounded-xl border border-border bg-bg/60 px-3 py-2 text-sm outline-none focus:border-primary" />
+          {app.deadline && !dl && <span className="text-xs text-muted">The posting says: “{app.deadline}”</span>}
+          {dlMsg && <span role="status" className="text-xs text-muted">{dlMsg}</span>}
         </div>
         <p className="text-xs text-muted">Update the status yourself after you send the application. CareerPilot cannot see whether you applied.</p>
       </Card>

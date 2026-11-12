@@ -82,3 +82,6 @@ Every page reads the database, so the distance between Vercel and Neon matters. 
 1. Run the migration (Windows CMD): `set "DATABASE_URL=your-neon-url"` then `npm run db:migrate`.
 2. Admin → Scholarships → **Add by hand** has a box at the top: paste one scholarship's details (lines like `Name: …`, `Funding: …`, `Official link: …`) and press **Fill form**; it fills every field and cleans the link. Or use **Add from an official page** (paste an official link; AI fills the form) or **Add by hand**. Everything goes to the review queue; check each field against the official page, press **Mark verified**, then **Publish**.
 3. Every Monday a cron re-checks published official pages and flags **Page changed** / **Link broken**. It never edits content.
+
+## Deadline reminders (no migration, no new env variables)
+Users get a **Deadlines** page (sidebar) and an "Upcoming deadlines" card on the dashboard. It lists jobs they are preparing (status Interested/Drafting) and scholarships they saved, closest first, with Passed / Next 7 days / Later / No date found. Each application has a **Your deadline** date picker. **Add to my calendar (.ics)** downloads a calendar file; the user's own calendar app then reminds them 7 days and 1 day before. There is no email sending (that would need an email provider); it can be added later.

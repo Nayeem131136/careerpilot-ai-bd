@@ -7,13 +7,15 @@ import { db, schema } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 import Link from "next/link";
 import { getAiStatus } from "@/lib/ai/service";
+import { getDeadlines } from "@/lib/deadlines/data";
+import { DeadlineRow } from "@/components/app/deadline-row";
 
 export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const session = await requireSession();
   const uid = session.user.id;
-  const [[profile], [cv], ai, [{ n: matchCount }], [{ n: appCount }], [roadmap], top, appRows] = await Promise.all([
+  const [[profile], [cv], ai, [{ n: matchCount }], [{ n: appCount }], [roadmap], top, appRows, deadlines] = await Promise.all([
     db.select().from(schema.profiles).where(eq(schema.profiles.userId, uid)),
     db.select({ status: schema.cvs.status, reviewedAt: schema.cvs.reviewedAt }).from(schema.cvs).where(eq(schema.cvs.userId, uid)),
     getAiStatus(),
@@ -23,9 +25,11 @@ export default async function DashboardPage() {
     db.select({ score: schema.jobMatches.score, title: schema.jobs.title, company: schema.jobs.company }).from(schema.jobMatches)
       .innerJoin(schema.jobs, eq(schema.jobs.id, schema.jobMatches.jobId)).where(eq(schema.jobMatches.userId, uid)).orderBy(desc(schema.jobMatches.score)).limit(3),
     db.select({ status: schema.applications.status, n: count() }).from(schema.applications).where(eq(schema.applications.userId, uid)).groupBy(schema.applications.status),
+    getDeadlines(uid),
   ]);
   const fields = [profile?.headline, profile?.country, profile?.city, profile?.experienceLevel, cv?.status === "analyzed" ? "cv" : null];
   const completeness = Math.round((fields.filter(Boolean).length / fields.length) * 100);
+  const upcoming = deadlines.filter((d) => d.days !== null && d.days >= 0 && d.days <= 30).slice(0, 4);
   const by = new Map(appRows.map((r) => [r.status, r.n]));
 
   const steps = [
@@ -88,6 +92,12 @@ export default async function DashboardPage() {
               : <><p className="mt-4"><Badge tone="warn">Not configured yet</Badge></p><p className="mt-3 text-sm text-muted">AI features switch on once the site admin connects an AI provider.</p></>}
         </Card>
       </div>
+      {upcoming.length > 0 && (
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between gap-2"><h3 className="font-bold">Upcoming deadlines</h3><Link href="/dashboard/deadlines" className="text-sm text-primary hover:underline">See all</Link></div>
+          <ul className="space-y-2">{upcoming.map((d) => <DeadlineRow key={d.key} i={d} />)}</ul>
+        </Card>
+      )}
       <Card>
         <div className="flex items-center gap-2"><Briefcase size={18} className="text-cyan" /><h3 className="font-bold">Your applications</h3></div>
         {appCount === 0 ? <p className="mt-3 text-sm text-muted">Nothing tracked yet. Open a job and press “Prepare application”.</p> : (
