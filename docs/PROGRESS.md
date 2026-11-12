@@ -33,3 +33,6 @@ Later: CV-based fit score, Google Jobs optional source, ReliefWeb source.
 
 ## Deadline reminders
 Done: Deadlines page, dashboard card, own deadline per application, .ics calendar download. Later: email reminders (needs an email provider key).
+
+## Closed-job hiding
+Done: expired jobs hidden, "Closes in N days" tag, Show closed jobs toggle, auto-delete 30 days after closing, admin Closed badge.

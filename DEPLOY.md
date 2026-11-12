@@ -85,3 +85,6 @@ Every page reads the database, so the distance between Vercel and Neon matters. 
 
 ## Deadline reminders (no migration, no new env variables)
 Users get a **Deadlines** page (sidebar) and an "Upcoming deadlines" card on the dashboard. It lists jobs they are preparing (status Interested/Drafting) and scholarships they saved, closest first, with Passed / Next 7 days / Later / No date found. Each application has a **Your deadline** date picker. **Add to my calendar (.ics)** downloads a calendar file; the user's own calendar app then reminds them 7 days and 1 day before. There is no email sending (that would need an email provider); it can be added later.
+
+## Closed jobs
+Jobs whose deadline (read from the deadline text) has passed are hidden from the feed; users can tick "Show closed jobs"; jobs a user saved always stay visible with a "Closed" tag. The daily refresh deletes public jobs closed more than 30 days ago. No migration.

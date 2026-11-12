@@ -10,7 +10,7 @@ import { MatchPanel } from "./match-panel";
 export type JobView = {
   id: string; title: string; company: string; location: string | null; country: string | null; remote: boolean | null; jobType: string | null;
   description: string; url: string; source: string; postedAt: string | null; saved: boolean; salary: string | null;
-  sector: string | null; workMode: string | null; deadline: string | null; score: number | null; matchedSkills: string[]; notes: string[];
+  sector: string | null; workMode: string | null; deadline: string | null; score: number | null; daysLeft: number | null; expired: boolean; matchedSkills: string[]; notes: string[];
   ai: MatchResult | null; canMatch: boolean;
 };
 
@@ -52,6 +52,8 @@ export function JobCard({ job }: { job: JobView }) {
       <div className="flex flex-wrap gap-1.5 text-xs">
         {job.sector && job.sector !== "private" && <span className="rounded-full border border-cyan/40 bg-cyan/10 px-2 py-0.5">{job.sector === "government" ? "Government" : "NGO"}</span>}
         {job.workMode ? <span className="rounded-full border border-border px-2 py-0.5">{{ onsite: "Onsite", hybrid: "Hybrid", remote: "Remote", home: "Work from home" }[job.workMode] ?? job.workMode}</span> : job.remote && <span className="rounded-full border border-border px-2 py-0.5">Remote</span>}
+        {job.expired && <span className="rounded-full border border-danger/50 bg-danger/10 px-2 py-0.5 text-danger">Closed: the deadline has passed</span>}
+        {!job.expired && job.daysLeft !== null && job.daysLeft <= 7 && <span className="rounded-full border border-warn/50 bg-warn/10 px-2 py-0.5 text-warn">{job.daysLeft === 0 ? "Closes today" : job.daysLeft === 1 ? "Closes tomorrow" : `Closes in ${job.daysLeft} days`}</span>}
         {job.deadline && <span className="rounded-full border border-warn/40 px-2 py-0.5">Deadline: {job.deadline}</span>}
         {job.jobType && <span className="rounded-full border border-border px-2 py-0.5">{job.jobType}</span>}
         {job.salary && <span className="rounded-full border border-border px-2 py-0.5">{job.salary}</span>}

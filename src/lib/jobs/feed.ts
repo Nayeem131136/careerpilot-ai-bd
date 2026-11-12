@@ -2,10 +2,11 @@ import "server-only";
 import { and, desc, eq, getTableColumns, ilike, inArray, isNull, notInArray, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import type { CvAnalysis } from "@/lib/cv/schema";
+import { daysLeft, parseDeadline } from "@/lib/deadlines/parse";
 import { rankJob, type RankProfile, type Ranked } from "./rank";
 
-export type FeedFilters = { q?: string; country?: string; remote?: boolean; source?: string; sector?: string; workMode?: string; saved?: boolean; page: number };
-export type FeedJob = typeof schema.jobs.$inferSelect & { rank: Ranked; saved: boolean };
+export type FeedFilters = { q?: string; country?: string; remote?: boolean; source?: string; sector?: string; workMode?: string; saved?: boolean; expired?: boolean; page: number };
+export type FeedJob = typeof schema.jobs.$inferSelect & { rank: Ranked; saved: boolean; daysLeft: number | null; expired: boolean };
 const PAGE = 20;
 
 export async function loadRankProfile(userId: string): Promise<RankProfile & { cvStatus: "none" | "ready" }> {
@@ -49,7 +50,7 @@ export async function getFeed(userId: string, f: FeedFilters) {
   if (f.sector) where.push(eq(schema.jobs.sector, f.sector));
   if (f.workMode) where.push(eq(schema.jobs.workMode, f.workMode));
   if (f.q) { const like = `%${f.q.replace(/[%_\\]/g, "\\$&")}%`; where.push(or(ilike(schema.jobs.title, like), ilike(schema.jobs.company, like))); }
-  if (f.saved) { if (savedIds.size === 0) return { jobs: [], total: 0, pages: 1, profile }; where.push(inArray(schema.jobs.id, [...savedIds])); }
+  if (f.saved) { if (savedIds.size === 0) return { jobs: [], total: 0, pages: 1, profile, hiddenExpired: 0 }; where.push(inArray(schema.jobs.id, [...savedIds])); }
 
   // Ranking only needs the start of each description; the full text is loaded below for the jobs actually shown.
   const { description: _full, ...cols } = getTableColumns(schema.jobs);
@@ -59,10 +60,17 @@ export async function getFeed(userId: string, f: FeedFilters) {
 
   const seen = new Set<string>();
   const ranked: FeedJob[] = [];
+  let hiddenExpired = 0;
+  const now = new Date();
   for (const r of rows.sort((a, b) => Number(Boolean(b.ownerUserId)) - Number(Boolean(a.ownerUserId)))) {
     if (seen.has(r.dedupeKey)) continue;
     seen.add(r.dedupeKey);
-    ranked.push({ ...r, rank: rankJob(r, profile), saved: savedIds.has(r.id) });
+    const dl = parseDeadline(r.deadline);
+    const left = dl ? daysLeft(dl, now) : null;
+    const expired = left !== null && left < 0;
+    // Closed jobs are hidden unless asked for; jobs the user saved always stay visible.
+    if (expired && !f.expired && !savedIds.has(r.id)) { hiddenExpired++; continue; }
+    ranked.push({ ...r, rank: rankJob(r, profile), saved: savedIds.has(r.id), daysLeft: left, expired });
   }
   ranked.sort((a, b) => b.rank.score - a.rank.score || (b.postedAt?.getTime() ?? 0) - (a.postedAt?.getTime() ?? 0));
   const pages = Math.max(1, Math.ceil(ranked.length / PAGE));
@@ -73,5 +81,5 @@ export async function getFeed(userId: string, f: FeedFilters) {
     const byId = new Map(full.map((r) => [r.id, r.description]));
     for (const j of shown) j.description = byId.get(j.id) ?? j.description;
   }
-  return { jobs: shown, total: ranked.length, pages, page, profile };
+  return { jobs: shown, total: ranked.length, pages, page, profile, hiddenExpired };
 }

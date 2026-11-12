@@ -1,5 +1,6 @@
 import "server-only";
-import { and, desc, eq, gt, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, lt, sql } from "drizzle-orm";
+import { daysLeft, parseDeadline } from "@/lib/deadlines/parse";
 import { db, schema } from "@/lib/db";
 import { env } from "@/lib/env";
 import type { CvAnalysis } from "@/lib/cv/schema";
@@ -76,7 +77,17 @@ export async function refreshPublicPool(force = false): Promise<SourceResult[]> 
     return r;
   })));
   await db.delete(schema.jobs).where(and(sql`${schema.jobs.ownerUserId} is null`, lt(sql`coalesce(${schema.jobs.postedAt}, ${schema.jobs.fetchedAt})`, new Date(Date.now() - MAX_AGE_DAYS * 864e5))));
+  await removeClosedJobs();
   return results;
+}
+
+/** Deletes public jobs whose deadline passed more than 30 days ago (their date is read from the deadline text). */
+async function removeClosedJobs() {
+  const rows = await db.select({ id: schema.jobs.id, deadline: schema.jobs.deadline }).from(schema.jobs)
+    .where(and(sql`${schema.jobs.ownerUserId} is null`, sql`${schema.jobs.deadline} is not null`)).limit(5000);
+  const now = new Date();
+  const old = rows.filter((r) => { const d = parseDeadline(r.deadline); return d && daysLeft(d, now) < -30; }).map((r) => r.id);
+  for (let i = 0; i < old.length; i += 200) await db.delete(schema.jobs).where(inArray(schema.jobs.id, old.slice(i, i + 200)));
 }
 
 /** Query-style sources (Adzuna, Jooble) driven by this user's CV and preferences. Few calls, cached 12h. */

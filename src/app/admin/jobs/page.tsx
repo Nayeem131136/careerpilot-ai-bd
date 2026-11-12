@@ -3,6 +3,7 @@ import { and, count, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Badge, Card } from "@/components/ui/primitives";
 import { db, schema } from "@/lib/db";
+import { daysLeft, parseDeadline } from "@/lib/deadlines/parse";
 import { SOURCE_LABELS } from "@/lib/jobs/types";
 import { deleteJob } from "./actions";
 
@@ -41,6 +42,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ q
               <span className="text-sm text-muted">{j.company}{j.location ? ` · ${j.location}` : ""}</span>
               <Badge>{SOURCE_LABELS[j.source]?.label ?? j.source}</Badge>
               {j.sector && <Badge>{j.sector}</Badge>}
+              {(() => { const d = parseDeadline(j.deadline); return d && daysLeft(d) < 0 ? <Badge tone="danger">Closed</Badge> : null; })()}
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <span className="text-xs text-muted">Fetched {j.fetchedAt.toLocaleDateString("en-GB")}</span>

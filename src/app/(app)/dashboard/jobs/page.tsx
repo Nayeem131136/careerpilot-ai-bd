@@ -20,14 +20,14 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 export default async function JobsPage({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
   const s = await requireSession();
-  const filters = { q: one(sp.q).slice(0, 80), country: one(sp.country).slice(0, 60), remote: one(sp.remote) === "1", source: one(sp.source).slice(0, 20), sector: ["government", "private", "ngo"].includes(one(sp.sector)) ? one(sp.sector) : "", workMode: ["onsite", "hybrid", "remote", "home"].includes(one(sp.workMode)) ? one(sp.workMode) : "", saved: one(sp.saved) === "1", page: Math.max(1, Number(one(sp.page)) || 1) };
+  const filters = { q: one(sp.q).slice(0, 80), country: one(sp.country).slice(0, 60), remote: one(sp.remote) === "1", source: one(sp.source).slice(0, 20), sector: ["government", "private", "ngo"].includes(one(sp.sector)) ? one(sp.sector) : "", workMode: ["onsite", "hybrid", "remote", "home"].includes(one(sp.workMode)) ? one(sp.workMode) : "", saved: one(sp.saved) === "1", expired: one(sp.expired) === "1", page: Math.max(1, Number(one(sp.page)) || 1) };
   const [feed, cov] = await Promise.all([getFeed(s.user.id, filters), coverage()]);
   const ids = feed.jobs.map((j) => j.id);
   const matchRows = ids.length ? await db.select().from(schema.jobMatches).where(and(eq(schema.jobMatches.userId, s.user.id), inArray(schema.jobMatches.jobId, ids))) : [];
   const matches = new Map(matchRows.map((m) => { const p = matchSchema.safeParse(m.data); return [m.jobId, p.success ? p.data : null] as const; }));
   const qs = (over: Record<string, string | number | undefined>) => {
     const p = new URLSearchParams();
-    const all = { q: filters.q, country: filters.country, remote: filters.remote ? "1" : "", source: filters.source, sector: filters.sector, workMode: filters.workMode, saved: filters.saved ? "1" : "", ...over };
+    const all = { q: filters.q, country: filters.country, remote: filters.remote ? "1" : "", source: filters.source, sector: filters.sector, workMode: filters.workMode, saved: filters.saved ? "1" : "", expired: filters.expired ? "1" : "", ...over };
     for (const [k, v] of Object.entries(all)) if (v) p.set(k, String(v));
     const t = p.toString();
     return t ? `?${t}` : "";
@@ -63,6 +63,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         </select>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3 sm:col-span-2 lg:col-span-5">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="remote" value="1" defaultChecked={filters.remote} className="size-4 accent-[var(--primary)]" />Remote</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="expired" value="1" defaultChecked={filters.expired} className="size-4 accent-[var(--primary)]" />Show closed jobs</label>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="saved" value="1" defaultChecked={filters.saved} className="size-4 accent-[var(--primary)]" />Saved</label>
         <button className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white">Apply filters</button>
         </div>
@@ -73,7 +74,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       ) : (
         <>
           <p className="text-sm text-muted">{feed.total} jobs{filters.q || filters.country || filters.remote || filters.source || filters.sector || filters.workMode || filters.saved ? " match your filters" : ""}</p>
-          <div className="space-y-3">{feed.jobs.map((j) => <JobCard key={j.id} job={{ id: j.id, title: j.title, company: j.company, location: j.location, country: j.country, remote: j.remote, jobType: j.jobType, description: j.description, url: j.url, source: j.source, postedAt: j.postedAt?.toISOString() ?? null, saved: j.saved, sector: j.sector, workMode: j.workMode, deadline: j.deadline, salary: j.salaryMin ? `${j.salaryMin.toLocaleString()}${j.salaryMax ? `–${j.salaryMax.toLocaleString()}` : "+"} ${j.salaryCurrency ?? ""}`.trim() : null, score: feed.profile.hasSignal ? j.rank.score : null, matchedSkills: j.rank.matchedSkills, notes: j.rank.notes, ai: matches.get(j.id) ?? null, canMatch: feed.profile.cvStatus === "ready" }} />)}</div>
+          {!filters.expired && (feed.hiddenExpired ?? 0) > 0 && <p className="text-xs text-muted">{feed.hiddenExpired} closed job{feed.hiddenExpired === 1 ? "" : "s"} (deadline passed) hidden. <Link className="text-primary hover:underline" href={`/dashboard/jobs${qs({ expired: "1", page: undefined })}`}>Show them</Link></p>}
+          <div className="space-y-3">{feed.jobs.map((j) => <JobCard key={j.id} job={{ id: j.id, title: j.title, company: j.company, location: j.location, country: j.country, remote: j.remote, jobType: j.jobType, description: j.description, url: j.url, source: j.source, postedAt: j.postedAt?.toISOString() ?? null, saved: j.saved, sector: j.sector, workMode: j.workMode, deadline: j.deadline, salary: j.salaryMin ? `${j.salaryMin.toLocaleString()}${j.salaryMax ? `–${j.salaryMax.toLocaleString()}` : "+"} ${j.salaryCurrency ?? ""}`.trim() : null, score: feed.profile.hasSignal ? j.rank.score : null, daysLeft: j.daysLeft, expired: j.expired, matchedSkills: j.rank.matchedSkills, notes: j.rank.notes, ai: matches.get(j.id) ?? null, canMatch: feed.profile.cvStatus === "ready" }} />)}</div>
           {(feed.pages ?? 1) > 1 && (
             <nav className="flex items-center justify-between text-sm" aria-label="Pagination">
               {feed.page! > 1 ? <Link className="text-primary hover:underline" href={`/dashboard/jobs${qs({ page: feed.page! - 1 })}`}>← Previous</Link> : <span />}
