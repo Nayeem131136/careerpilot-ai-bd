@@ -16,7 +16,7 @@ export default function Features() {
           {FEATURES.map((f) => <Card key={f.title}><h3 className="font-display text-lg font-bold">{f.title}</h3><p className="mt-2 text-sm text-muted">{f.body}</p></Card>)}
         </div>
       </Section>
-      <Section title="Exclusive tools">
+      <Section title="Built-in safeguards">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {EXCLUSIVE.map((f) => <Card key={f.title}><h3 className="font-display text-lg font-bold">{f.title}</h3><p className="mt-2 text-sm text-muted">{f.body}</p></Card>)}
         </div>

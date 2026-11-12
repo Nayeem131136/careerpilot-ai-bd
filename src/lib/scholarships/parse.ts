@@ -37,7 +37,7 @@ export function parseScholarshipText(raw: string): { data: Partial<Parsed>; fill
   const set = <K extends keyof Parsed>(k: K, v: Parsed[K]) => { if (Array.isArray(v) ? v.length : v) d[k] = v; };
 
   set("name", g("name").slice(0, 160)); set("provider", g("provider").slice(0, 160)); set("hostCountry", g("hostCountry").slice(0, 80));
-  const list = (s: string) => [...new Set(s.split(/[,;·]|\band\b/i).map((x) => x.trim()).filter((x) => x && !/^(all|any|various|many)\b/i.test(x)))].join(", ");
+  const list = (s: string) => [...new Set(s.split(/[,;·]/).map((x) => x.trim()).filter((x) => x && !/^(all|any|various|many)\b/i.test(x)))].join(", ");
   set("universities", list(g("universities")).slice(0, 600));
   const lv = g("levels").toLowerCase();
   const levels = [/hsc|school|higher secondary|a-?level/.test(lv) && "hsc", /bachelor|undergrad|b\.?sc|\bbs\b|\bba\b/.test(lv) && "bachelor", /master|msc|m\.sc|postgrad|\bma\b|\bmba\b/.test(lv) && "master", /phd|ph\.d|doctor/.test(lv) && "phd"].filter(Boolean) as string[];

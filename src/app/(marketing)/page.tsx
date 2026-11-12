@@ -12,14 +12,14 @@ export default function Home() {
         <MatchPreview />
       </Section>
       <JourneySection />
-      <Section id="features" title="Everything between your CV and your offer" sub="One workspace for understanding yourself, finding jobs, preparing applications and tracking results.">
+      <Section id="features" title="Everything between your CV and your offer" sub="One workspace for understanding your CV, finding jobs and scholarships, preparing applications and tracking deadlines.">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
             <Card key={f.title} className="transition hover:border-primary/50"><h3 className="font-display text-lg font-bold">{f.title}</h3><p className="mt-2 text-sm text-muted">{f.body}</p></Card>
           ))}
         </div>
       </Section>
-      <Section title={<>Five tools you will not find in a typical job board</>} sub="Built to protect you and to widen what you can aim for.">
+      <Section title="Built-in safeguards" sub="Small things that keep your feed fresh and your data yours.">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {EXCLUSIVE.map((f, i) => (
             <Card key={f.title} className="relative overflow-hidden">
