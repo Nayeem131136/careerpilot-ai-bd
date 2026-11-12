@@ -91,3 +91,7 @@ Jobs whose deadline (read from the deadline text) has passed are hidden from the
 
 ## Bulk import (scholarships)
 Admin → Scholarships → **Bulk import**: paste many scholarships (each starting with a `Name:` line). A live preview shows which are ready and which miss something; **Import** adds the valid ones to the review queue (duplicates by official link are skipped). No migration.
+
+## Error monitoring (migration 0010)
+Run `npm run db:migrate` (adds the `error_logs` table). No new environment variables and no third-party service.
+Admin → **Errors** lists what crashed for users (server errors from pages, API routes and server actions, plus browser "Something went wrong" screens), grouped so one error counts once, with how many times and when. Mark resolved / delete. Emails, tokens and ids are scrubbed; no user ids or request data are stored. Resolved errors older than 30 days and anything beyond 500 rows are cleaned by the daily job. The Overview page shows the open-error count.

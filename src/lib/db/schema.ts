@@ -328,3 +328,20 @@ export const scholarshipSaves = pgTable("scholarship_saves", {
   scholarshipId: uuid("scholarship_id").notNull().references(() => scholarships.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [uniqueIndex("scholarship_saves_uidx").on(t.userId, t.scholarshipId)]);
+
+
+/* ---------- Error log (admin-only; no user ids, no request data) ---------- */
+export const errorLogs = pgTable("error_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  fingerprint: text("fingerprint").notNull(),
+  source: text("source").notNull(), // 'server' | 'browser'
+  message: text("message").notNull(),
+  path: text("path").notNull().default(""),
+  routeType: text("route_type"),
+  digest: text("digest"),
+  stack: text("stack"),
+  count: integer("count").notNull().default(1),
+  status: text("status").notNull().default("open"), // 'open' | 'resolved'
+  firstSeenAt: timestamp("first_seen_at").notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+}, (t) => [uniqueIndex("error_logs_fp_uidx").on(t.fingerprint), index("error_logs_seen_idx").on(t.lastSeenAt)]);

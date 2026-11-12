@@ -12,7 +12,7 @@ export default function Privacy() {
         {!legalComplete && <DraftNotice />}
         <p>Operator: {legal.owner || "[Your Name / Company]"}, {legal.country || "[Country]"}. Contact: {legal.email || "[Contact Email]"}. Last updated: {legal.updated}.</p>
         <h2>What we store</h2>
-        <p>Your account details (name, email), the profile and preferences you enter, the <strong>text</strong> of your CV and the AI analysis of it (we do not keep the original file), jobs you save or hide, AI match results, your application tracker, drafts and notes, and your learning roadmap. We also keep technical records such as sign-in sessions and AI usage counts (task, time, success) to run and protect the service.</p>
+        <p>Your account details (name, email), the profile and preferences you enter, the <strong>text</strong> of your CV and the AI analysis of it (we do not keep the original file), jobs you save or hide, AI match results, your application tracker, drafts and notes, and your learning roadmap. We also keep technical records such as sign-in sessions and AI usage counts (task, time, success) and error reports (what failed and on which page, with no personal details) to run and protect the service.</p>
         <h2>AI processing</h2>
         <p>To analyse your CV, compare it with jobs, write drafts and build roadmaps, the relevant text (your CV content and the job description) is sent to a third-party AI provider chosen by the site operator, for example Groq, Google, OpenAI or Anthropic. That provider processes it under its own terms. Please do not upload information you do not want processed this way. AI output can be wrong, so always review it.</p>
         <h2>Job listings</h2>

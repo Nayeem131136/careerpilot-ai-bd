@@ -4,6 +4,7 @@ import { daysLeft, parseDeadline } from "@/lib/deadlines/parse";
 import { db, schema } from "@/lib/db";
 import { env } from "@/lib/env";
 import type { CvAnalysis } from "@/lib/cv/schema";
+import { pruneErrors } from "@/lib/errors/log";
 import { dedupeKey } from "./util";
 import type { NormalizedJob } from "./types";
 import { fetchNoticeSource } from "./notices";
@@ -78,6 +79,7 @@ export async function refreshPublicPool(force = false): Promise<SourceResult[]> 
   })));
   await db.delete(schema.jobs).where(and(sql`${schema.jobs.ownerUserId} is null`, lt(sql`coalesce(${schema.jobs.postedAt}, ${schema.jobs.fetchedAt})`, new Date(Date.now() - MAX_AGE_DAYS * 864e5))));
   await removeClosedJobs();
+  await pruneErrors();
   return results;
 }
 

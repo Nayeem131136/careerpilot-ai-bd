@@ -1,6 +1,9 @@
 "use client";
+import { useEffect } from "react";
+import { reportClientError } from "@/lib/errors/report-client";
 
-export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => { reportClientError(error); }, [error]);
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 text-center">
       <h1 className="text-xl font-bold">Something went wrong</h1>

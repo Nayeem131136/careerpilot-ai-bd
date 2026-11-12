@@ -38,3 +38,6 @@ Done: Deadlines page, dashboard card, own deadline per application, .ics calenda
 Done: expired jobs hidden, "Closes in N days" tag, Show closed jobs toggle, auto-delete 30 days after closing, admin Closed badge.
 
 Done: scholarship bulk import.
+
+## Error monitoring
+Done: built-in error log (server + browser), admin Errors page, overview count, privacy text updated. Migration 0010.

@@ -13,7 +13,7 @@ export default async function Page() {
   const o = await overview();
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-extrabold">Overview</h1><p className="mt-1 text-sm text-muted">How the site is doing. <Link href="/admin/users" className="text-primary hover:underline">Users</Link> · <Link href="/admin/jobs" className="text-primary hover:underline">Jobs</Link> · <Link href="/admin/ai" className="text-primary hover:underline">AI</Link> · <Link href="/admin/sources" className="text-primary hover:underline">Job sources</Link></p></div>
+      <div><h1 className="text-2xl font-extrabold">Overview</h1><p className="mt-1 text-sm text-muted">How the site is doing. <Link href="/admin/users" className="text-primary hover:underline">Users</Link> · <Link href="/admin/jobs" className="text-primary hover:underline">Jobs</Link> · <Link href="/admin/ai" className="text-primary hover:underline">AI</Link> · <Link href="/admin/sources" className="text-primary hover:underline">Job sources</Link> · <Link href="/admin/errors" className="text-primary hover:underline">Errors</Link></p></div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Users" value={o.users} note={`${o.newUsers} new in 7 days`} />
         <Stat label="CVs analysed" value={o.cvs} />
@@ -21,6 +21,7 @@ export default async function Page() {
         <Stat label="Public jobs" value={o.pubJobs} />
         <Stat label="AI calls (24 h)" value={o.ai24} note={o.ai24fail ? `${o.ai24fail} failed` : "none failed"} />
         <Stat label="AI calls (7 days)" value={o.ai7} />
+        <Link href="/admin/errors"><Stat label="Open errors" value={o.openErrors} note={o.openErrors ? "Open the Errors page" : "none"} /></Link>
       </div>
       <Card className="space-y-3">
         <h2 className="font-display text-lg font-bold">AI usage by task (7 days)</h2>
