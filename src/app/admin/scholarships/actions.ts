@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db, schema } from "@/lib/db";
 import { recheckScholarships, verifyNow } from "@/lib/scholarships/check";
 import { extractScholarship } from "@/lib/scholarships/extract";
+import { splitBlocks, toCandidate } from "@/lib/scholarships/parse";
 import { scholarshipInput, type ScholarshipInput } from "@/lib/scholarships/types";
 import { requireAdminAction } from "@/lib/session";
 
@@ -92,3 +93,26 @@ export async function runRecheck(): Promise<R> {
   } catch (e) { return fail(e); }
 }
 
+
+export type BulkItem = { name: string; status: "added" | "duplicate" | "invalid"; detail?: string; id?: string };
+
+/** Adds many scholarships from one pasted text. Valid ones go to the review queue; the rest are listed with what is missing. */
+export async function bulkImport(raw: string): Promise<{ ok: boolean; message: string; items: BulkItem[] }> {
+  try {
+    const admin = await requireAdminAction();
+    const text = String(raw ?? "").slice(0, 200_000);
+    const blocks = splitBlocks(text).slice(0, 60);
+    if (blocks.length === 0) return { ok: false, message: "Paste some text first.", items: [] };
+    const items: BulkItem[] = [];
+    for (const b of blocks) {
+      const c = toCandidate(b);
+      if (!c.ok) { items.push({ name: c.name, status: "invalid", detail: c.issues.join("; ") }); continue; }
+      const [r] = await db.insert(schema.scholarships).values({ ...row(c.input), status: "pending", origin: "manual" }).onConflictDoNothing().returning({ id: schema.scholarships.id });
+      items.push(r ? { name: c.input.name, status: "added", id: r.id } : { name: c.input.name, status: "duplicate", detail: "this official link is already in the list" });
+    }
+    const n = items.filter((i) => i.status === "added").length;
+    await audit(admin.user.id, "scholarships.bulk_import", String(n));
+    revalidatePath("/admin/scholarships");
+    return { ok: true, message: `${n} of ${items.length} added to the review queue.`, items };
+  } catch (e) { return { ok: false, message: e instanceof Error ? e.message : "Something went wrong.", items: [] }; }
+}

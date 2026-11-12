@@ -1,4 +1,4 @@
-import { LEVEL_KEYS, cleanUrl } from "./types";
+import { LEVEL_KEYS, cleanUrl, scholarshipInput, toList, type ScholarshipInput } from "./types";
 
 export type Parsed = {
   name: string; provider: string; hostCountry: string; universities: string; levels: string[]; fields: string; funding: "full" | "partial";
@@ -56,4 +56,32 @@ export function parseScholarshipText(raw: string): { data: Partial<Parsed>; fill
   if (um) d.officialUrl = cleanUrl(um[0]);
   const filled = Object.keys(d).filter((k) => k !== "bangladeshEligible" || got["bangladeshEligible"]).length;
   return filled >= 2 ? { data: d, filled } : null;
+}
+
+/** Splits a pasted text that holds several scholarships (each starts with a "Name:" line). One block if there is no such line. */
+export function splitBlocks(raw: string): string[] {
+  const lines = raw.replace(/\r/g, "").split("\n");
+  const starts: number[] = [];
+  lines.forEach((l, i) => { if (/^[\s>*\-•\d.)#]*\**\s*(scholarship\s+)?name\**\s*:/i.test(l)) starts.push(i); });
+  if (starts.length <= 1) return raw.trim() ? [raw] : [];
+  return starts.map((s, k) => lines.slice(s, starts[k + 1] ?? lines.length).join("\n")).filter((b) => b.trim());
+}
+
+const FIELD_LABEL: Record<string, string> = { name: "name", provider: "provider", hostCountry: "country of study", levels: "levels", officialUrl: "official link" };
+
+export type Candidate = { ok: true; input: ScholarshipInput } | { ok: false; name: string; issues: string[] };
+
+/** Turns one pasted block into a validated scholarship, or lists exactly what is missing. */
+export function toCandidate(block: string): Candidate {
+  const r = parseScholarshipText(block);
+  if (!r) return { ok: false, name: "(unreadable)", issues: ["no “Label: value” lines found"] };
+  const d = r.data;
+  const v = scholarshipInput.safeParse({
+    name: d.name ?? "", provider: d.provider ?? "", hostCountry: d.hostCountry ?? "", universities: toList(d.universities ?? ""), levels: d.levels ?? [], fields: toList(d.fields ?? ""),
+    funding: d.funding ?? "partial", coverage: d.coverage ?? "", eligibility: d.eligibility ?? "", bangladeshEligible: d.bangladeshEligible ?? "check", language: d.language ?? "",
+    howToApply: d.howToApply ?? "", deadlineText: d.deadlineText ?? "", deadlineDate: d.deadlineDate ?? "", officialUrl: d.officialUrl ?? "",
+  });
+  if (v.success) return { ok: true, input: v.data };
+  const issues = [...new Set(v.error.issues.map((i) => { const k = String(i.path[0] ?? ""); return FIELD_LABEL[k] ? `${FIELD_LABEL[k]} missing or invalid` : `${k}: ${i.message}`; }))];
+  return { ok: false, name: d.name || "(no name)", issues };
 }

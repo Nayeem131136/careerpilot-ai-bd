@@ -53,7 +53,10 @@ export default async function Page() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div><h1 className="text-2xl font-extrabold">Scholarships</h1>
           <p className="mt-1 text-sm text-muted">{published.length} published · {pending.length} to review · {attention.length} need attention · {staleCount} not verified in {STALE_DAYS}+ days. Users only see published ones.</p></div>
-        <Link href="/admin/scholarships/new" className="rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:border-primary/60">Add by hand</Link>
+        <div className="flex gap-2">
+          <Link href="/admin/scholarships/import" className="rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:border-primary/60">Bulk import</Link>
+          <Link href="/admin/scholarships/new" className="rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:border-primary/60">Add by hand</Link>
+        </div>
       </div>
       <ScholarshipTools pending={pending.length} />
       {attention.length > 0 && <section className="space-y-3"><h2 className="font-display text-lg font-bold">Needs attention</h2>{attention.map((r) => <Item key={r.id} r={r} stale={isStale(r)} />)}</section>}

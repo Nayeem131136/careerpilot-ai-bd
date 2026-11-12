@@ -88,3 +88,6 @@ Users get a **Deadlines** page (sidebar) and an "Upcoming deadlines" card on the
 
 ## Closed jobs
 Jobs whose deadline (read from the deadline text) has passed are hidden from the feed; users can tick "Show closed jobs"; jobs a user saved always stay visible with a "Closed" tag. The daily refresh deletes public jobs closed more than 30 days ago. No migration.
+
+## Bulk import (scholarships)
+Admin → Scholarships → **Bulk import**: paste many scholarships (each starting with a `Name:` line). A live preview shows which are ready and which miss something; **Import** adds the valid ones to the review queue (duplicates by official link are skipped). No migration.
