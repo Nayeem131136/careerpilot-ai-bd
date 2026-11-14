@@ -42,7 +42,11 @@ function once(u: URL, ip: { address: string; family: number }, accept: string): 
       protocol: "https:", hostname: u.hostname, port: u.port || 443, path: u.pathname + u.search, method: "GET", servername: u.hostname, timeout: 10_000,
       headers: { "user-agent": UA, accept, "accept-language": "bn,en;q=0.8" },
       // Pin the connection to the IP we validated, so DNS cannot change between the check and the request.
-      lookup: (_h, _o, cb) => cb(null, ip.address, ip.family),
+      lookup: (_h, o, cb) => {
+        // Newer Node versions ask for every address (all: true) and expect an array.
+        if (o && typeof o === "object" && (o as { all?: boolean }).all) (cb as unknown as (e: null, a: { address: string; family: number }[]) => void)(null, [{ address: ip.address, family: ip.family }]);
+        else cb(null, ip.address, ip.family);
+      },
     }, (res) => {
       const chunks: Buffer[] = []; let size = 0; let finished = false;
       const finish = () => { if (finished) return; finished = true; resolve({ status: res.statusCode ?? 0, location: res.headers.location, type: String(res.headers["content-type"] ?? ""), body: Buffer.concat(chunks).toString("utf8") }); };
