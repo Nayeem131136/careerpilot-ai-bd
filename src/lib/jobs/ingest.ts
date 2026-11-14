@@ -92,7 +92,7 @@ async function refreshBangladeshSweep(force: boolean): Promise<SourceResult[]> {
   const out: SourceResult[] = [];
   if (env.JOOBLE_API_KEY) {
     const key = env.JOOBLE_API_KEY;
-    out.push(...(await inChunks(BD_KEYWORDS, 4, (k) => runSource("jooble", `Bangladesh|${k}`, TTL.query, force, () => fetchJooble(key, k, "Bangladesh", "Bangladesh")))));
+    out.push(...(await inChunks(BD_KEYWORDS, 4, (k) => runSource("jooble", `Bangladesh|${k}`, TTL.query, force, async () => { const a = await fetchJooble(key, k, "Bangladesh", "Bangladesh"); return a.length ? a : fetchJooble(key, k, "Dhaka", "Bangladesh"); }))));
   }
   return out;
 }

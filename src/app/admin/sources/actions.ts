@@ -6,7 +6,8 @@ import { db, schema } from "@/lib/db";
 import { refreshPublicPool } from "@/lib/jobs/ingest";
 import { allowedByRobots, fetchPublicPage } from "@/lib/jobs/safe-fetch";
 import { parseFeed } from "@/lib/jobs/notices";
-import { fetchGreenhouse, fetchLever, validToken } from "@/lib/jobs/sources";
+import { fetchGreenhouse, fetchLever, probeJooble, validToken } from "@/lib/jobs/sources";
+import { env } from "@/lib/env";
 import { requireAdminAction } from "@/lib/session";
 
 type R = { ok: boolean; message: string };
@@ -36,6 +37,15 @@ export async function removeCompany(id: string): Promise<R> {
     await db.delete(schema.companySources).where(eq(schema.companySources.id, z.string().uuid().parse(id)));
     await db.insert(schema.auditLogs).values({ actorId: admin.user.id, action: "jobs.company.remove", target: id });
     return done("Removed.");
+  } catch (e) { return fail(e); }
+}
+
+export async function testJooble(): Promise<R> {
+  try {
+    await requireAdminAction();
+    if (!env.JOOBLE_API_KEY) return { ok: false, message: "JOOBLE_API_KEY is not set on the server." };
+    const lines = await probeJooble(env.JOOBLE_API_KEY);
+    return { ok: !lines.every((l) => l.includes("returned 0") || /HTTP|network|timed|invalid/.test(l)), message: lines.join("\n") };
   } catch (e) { return fail(e); }
 }
 

@@ -95,6 +95,23 @@ export async function fetchJooble(key: string, keywords: string, location: strin
   return normalizeJooble(await fetchJson(`https://jooble.org/api/${key}`, { method: "POST", body: { keywords, location, page: 1 } }), country);
 }
 
+/** Admin diagnostic: asks Jooble a few Bangladesh queries and reports what comes back (count, error, sample titles). */
+export async function probeJooble(key: string): Promise<string[]> {
+  if (!/^[\w-]{8,80}$/.test(key)) return ["The saved key has an invalid format (letters, numbers and - only, 8-80 characters)."];
+  const tries = [{ keywords: "software engineer", location: "Bangladesh" }, { keywords: "accountant", location: "Dhaka" }, { keywords: "jobs in Bangladesh", location: "" }];
+  const out: string[] = [];
+  for (const t of tries) {
+    try {
+      const json = await fetchJson(`https://jooble.org/api/${key}`, { method: "POST", body: { ...t, page: 1 } });
+      const raw = arr(rec(json).jobs);
+      const ok = normalizeJooble(json, "Bangladesh");
+      const total = rec(json).totalCount;
+      out.push(`"${t.keywords}" in "${t.location || "(any)"}": Jooble returned ${raw.length} (total ${typeof total === "number" ? total : "?"}), usable ${ok.length}${ok[0] ? `, e.g. ${ok[0].title} at ${ok[0].company} (${ok[0].location ?? "?"})` : ""}`);
+    } catch (e) { out.push(`"${t.keywords}" in "${t.location || "(any)"}": ${e instanceof Error ? e.message : "failed"}`); }
+  }
+  return out;
+}
+
 /* ---------- Company boards (public ATS APIs) ---------- */
 const TOKEN = /^[a-z0-9][a-z0-9_-]{0,59}$/i;
 export const validToken = (t: string) => TOKEN.test(t);

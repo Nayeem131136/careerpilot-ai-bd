@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, Input } from "@/components/ui/primitives";
-import { addCompany, addPage, refreshNow, removeCompany, removePage } from "@/app/admin/sources/actions";
+import { addCompany, addPage, refreshNow, removeCompany, removePage, testJooble } from "@/app/admin/sources/actions";
 
 type Company = { id: string; name: string; ats: string; token: string; enabled: boolean; lastFetchAt: string | null; lastCount: number | null; lastError: string | null };
 const selectCls = "rounded-xl border border-border bg-bg/60 px-3 py-2.5 text-sm outline-none focus:border-primary";
@@ -18,11 +18,12 @@ export function SourcesControl({ companies, pages }: { companies: Company[]; pag
   const report = (r: { ok: boolean; message: string }) => setMsg({ ok: r.ok, text: r.message });
   return (
     <div className="space-y-6">
-      {msg && <p role="status" className={`rounded-xl border px-4 py-3 text-sm ${msg.ok ? "border-success/40 text-success" : "border-danger/40 text-danger"}`}>{msg.text}</p>}
+      {msg && <p role="status" className={`whitespace-pre-line rounded-xl border px-4 py-3 text-sm ${msg.ok ? "border-success/40 text-success" : "border-danger/40 text-danger"}`}>{msg.text}</p>}
       <Card>
         <h2 className="font-display text-lg font-bold">Refresh now</h2>
         <p className="mt-1 text-sm text-muted">Fetches all key-free sources and every company board right away, ignoring the cache. Please use sparingly: Jobicy asks for at most a few checks per day.</p>
         <Button className="mt-3" disabled={pending} onClick={() => start(async () => report(await refreshNow()))}>{pending ? "Refreshing…" : "Refresh all sources"}</Button>
+        <Button className="ml-2 mt-3" disabled={pending} onClick={() => start(async () => report(await testJooble()))}>{pending ? "Testing…" : "Test Jooble (Bangladesh)"}</Button>
       </Card>
       <Card>
         <h2 className="font-display text-lg font-bold">Company registry</h2>
