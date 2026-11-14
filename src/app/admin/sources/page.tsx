@@ -12,7 +12,7 @@ export default async function SourcesPage() {
     { key: "jobicy", note: "Remote jobs worldwide. Free, no key. Cached 6 hours.", on: true },
     { key: "arbeitnow", note: "Europe/Germany jobs, many with visa sponsorship. Free, no key.", on: true },
     { key: "adzuna", note: "UK, US, Australia, Canada, Germany, etc. Needs ADZUNA_APP_ID and ADZUNA_APP_KEY.", on: Boolean(env.ADZUNA_APP_ID && env.ADZUNA_APP_KEY) },
-    { key: "jooble", note: "Many countries, possibly including Bangladesh. Needs JOOBLE_API_KEY.", on: Boolean(env.JOOBLE_API_KEY) },
+    { key: "jooble", note: "Main source of Bangladesh jobs: the daily refresh searches 12 job categories in Bangladesh. Needs JOOBLE_API_KEY.", on: Boolean(env.JOOBLE_API_KEY) },
   ];
   return (
     <div className="space-y-6">

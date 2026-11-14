@@ -65,6 +65,7 @@ export async function refreshPublicPool(force = false): Promise<SourceResult[]> 
   const results: SourceResult[] = [];
   results.push(await runSource("jobicy", "all", TTL.pool, force, fetchJobicy));
   results.push(await runSource("arbeitnow", "all", TTL.pool, force, fetchArbeitnow));
+  results.push(...(await refreshBangladeshSweep(force)));
   const companies = await db.select().from(schema.companySources).where(eq(schema.companySources.enabled, true)).limit(60);
   results.push(...(await inChunks(companies, 4, async (c) => {
     const r = await runSource(c.ats, c.token, TTL.company, force, () => (c.ats === "lever" ? fetchLever(c.name, c.token) : fetchGreenhouse(c.name, c.token)));
@@ -81,6 +82,19 @@ export async function refreshPublicPool(force = false): Promise<SourceResult[]> 
   await removeClosedJobs();
   await pruneErrors();
   return results;
+}
+
+/** Broad keywords so the Bangladesh feed fills up for everyone, not only users who press Refresh with a CV. */
+const BD_KEYWORDS = ["software engineer", "web developer", "accountant", "marketing", "sales executive", "customer support", "graphic designer", "teacher", "civil engineer", "bank officer", "human resources", "data analyst"];
+
+/** Daily Bangladesh sweep (Jooble keyword search with Bangladesh as location). Each query is cached 12 hours. */
+async function refreshBangladeshSweep(force: boolean): Promise<SourceResult[]> {
+  const out: SourceResult[] = [];
+  if (env.JOOBLE_API_KEY) {
+    const key = env.JOOBLE_API_KEY;
+    out.push(...(await inChunks(BD_KEYWORDS, 4, (k) => runSource("jooble", `Bangladesh|${k}`, TTL.query, force, () => fetchJooble(key, k, "Bangladesh", "Bangladesh")))));
+  }
+  return out;
 }
 
 /** Deletes public jobs whose deadline passed more than 30 days ago (their date is read from the deadline text). */

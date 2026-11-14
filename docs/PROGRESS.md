@@ -41,3 +41,6 @@ Done: scholarship bulk import.
 
 ## Error monitoring
 Done: built-in error log (server + browser), admin Errors page, overview count, privacy text updated. Migration 0010.
+
+## Bangladesh jobs sweep
+- The daily cron now searches 12 job categories in Bangladesh through Jooble (needs `JOOBLE_API_KEY`). Previously Bangladesh jobs only came when a user pressed Refresh with a CV.

@@ -78,7 +78,7 @@ export async function fetchAdzuna(id: string, key: string, country: string, what
 }
 
 /* ---------- Jooble (free key; includes many countries, check coverage in the admin panel) ---------- */
-export function normalizeJooble(json: unknown): NormalizedJob[] {
+export function normalizeJooble(json: unknown, country?: string): NormalizedJob[] {
   return arr(rec(json).jobs).map((x) => {
     const j = rec(x);
     const loc = str(j.location, 150);
@@ -86,12 +86,13 @@ export function normalizeJooble(json: unknown): NormalizedJob[] {
       source: "jooble", externalId: str(j.id, 80) || str(j.link, 80), title: htmlToText(j.title, 200), company: str(j.company, 150) || str(j.source, 100),
       location: loc || null, jobType: str(j.type, 30) || null, level: null, description: htmlToText(j.snippet),
       url: safeUrl(j.link) ?? "", postedAt: toDate(j.updated), salaryMin: null, salaryMax: null, salaryCurrency: null,
+      country: country ?? undefined,
     });
   }).filter((x): x is NormalizedJob => x !== null);
 }
-export async function fetchJooble(key: string, keywords: string, location: string): Promise<NormalizedJob[]> {
+export async function fetchJooble(key: string, keywords: string, location: string, country?: string): Promise<NormalizedJob[]> {
   if (!/^[\w-]{8,80}$/.test(key)) throw new Error("invalid key format");
-  return normalizeJooble(await fetchJson(`https://jooble.org/api/${key}`, { method: "POST", body: { keywords, location, page: 1 } }));
+  return normalizeJooble(await fetchJson(`https://jooble.org/api/${key}`, { method: "POST", body: { keywords, location, page: 1 } }), country);
 }
 
 /* ---------- Company boards (public ATS APIs) ---------- */

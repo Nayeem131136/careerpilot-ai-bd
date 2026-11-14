@@ -26,7 +26,7 @@ Run `npm install` and `npm run db:migrate` (adds the `cvs` table, migration `000
 
 ## Phase 4 (jobs)
 1. `npm install` then `npm run db:migrate` (adds `jobs`, `job_fetch_log`, `company_sources`, `user_job_state`, migration `0003_jobs`).
-2. Optional env vars: `CRON_SECRET` (16+ random chars; enables the daily refresh in `vercel.json`), `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` (developer.adzuna.com), `JOOBLE_API_KEY` (jooble.org/api/about). Jobicy and Arbeitnow work without keys.
+2. Optional env vars: `CRON_SECRET` (16+ random chars; enables the daily refresh in `vercel.json`), `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` (developer.adzuna.com), `JOOBLE_API_KEY` (jooble.org/api/about; **this is what brings Bangladesh jobs**, the daily cron searches 12 categories in Bangladesh). Jobicy and Arbeitnow work without keys.
 3. Redeploy, open `/dashboard/jobs`, press "Refresh jobs". Admin: `/admin/sources` shows source status and lets you add Greenhouse/Lever company boards.
 4. Respect source terms: Jobicy asks for few checks per day (results are cached 6 hours); Remotive is intentionally not used.
 
